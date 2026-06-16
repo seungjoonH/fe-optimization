@@ -1,0 +1,10 @@
+# Local dev
+scripts/port.sh
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store

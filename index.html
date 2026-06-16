@@ -1,0 +1,3020 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FE 성능 최적화의 이모저모</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <link rel="stylesheet" href="style.css?v=53">
+</head>
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-arrow-left" viewBox="0 0 24 24"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></symbol>
+  <symbol id="icon-arrow-right" viewBox="0 0 24 24"><path fill="currentColor" d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></symbol>
+  <symbol id="icon-gauge" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></symbol>
+  <symbol id="icon-tree" viewBox="0 0 24 24"><path fill="currentColor" d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3h7z"/></symbol>
+  <symbol id="icon-layers" viewBox="0 0 24 24"><path fill="currentColor" d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.64 1.27L12 16z"/></symbol>
+  <symbol id="icon-resize" viewBox="0 0 24 24"><path fill="currentColor" d="M19 12h-2v3h-3v2h5v-5zM7 9h3V7H5v5h2V9zm14-6H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16.01H5V4.99h14v14.01z"/></symbol>
+  <symbol id="icon-virtual" viewBox="0 0 24 24"><path fill="currentColor" d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></symbol>
+  <symbol id="icon-cache" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></symbol>
+  <symbol id="icon-worker" viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></symbol>
+  <symbol id="icon-chevron-down" viewBox="0 0 24 24"><path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></symbol>
+  <symbol id="icon-close" viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></symbol>
+  <symbol id="icon-warning" viewBox="0 0 24 24"><path fill="currentColor" d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></symbol>
+  <symbol id="icon-settings" viewBox="0 0 24 24"><path fill="currentColor" d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></symbol>
+  <symbol id="icon-inspect" viewBox="0 0 24 24"><path fill="currentColor" d="M4 4v2h7.59L4 13.59 5.41 15 13 7.41V15h2V4H4z"/><path fill="none" stroke="currentColor" stroke-width="1.5" d="M9 9h9v9H9z"/></symbol>
+  <symbol id="icon-devices" viewBox="0 0 24 24"><path fill="currentColor" d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm5 18a1.25 1.25 0 0 0 0-2.5 1.25 1.25 0 0 0 0 2.5z"/></symbol>
+  <symbol id="icon-more-vert" viewBox="0 0 24 24"><path fill="currentColor" d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></symbol>
+  <symbol id="icon-corner-down-right" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 4v6h6"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 20l-8-8"/></symbol>
+</svg>
+
+  <div class="slide-kicker-host" id="slide-kicker-host" aria-live="polite">
+    <div class="slide-kicker" id="slide-kicker">
+      <div class="slide-kicker-track"></div>
+    </div>
+  </div>
+
+  <div class="container" id="container">
+
+  <!-- SLIDE 00: 타이틀 -->
+  <section data-index="0">
+    <span class="section-num">0</span>
+    <div class="center-layout">
+      <h1 class="title-main">FE 성능 최적화의 이모저모</h1>
+      <p class="title-flow">측정, 번들, 렌더링, 런타임</p>
+      <blockquote>최적화는 느린 부분을 찾아내는 것에서 시작한다</blockquote>
+      <ul class="toc-list">
+        <li><a href="#" class="toc-link" data-toc="measure"><svg class="section-icon"><use href="#icon-gauge"/></svg><span class="toc-num">1</span> 성능 측정</a></li>
+        <li><a href="#" class="toc-link" data-toc="treeShaking"><svg class="section-icon"><use href="#icon-tree"/></svg><span class="toc-num">2</span> Tree Shaking</a></li>
+        <li><a href="#" class="toc-link" data-toc="codeSplitting"><svg class="section-icon"><use href="#icon-layers"/></svg><span class="toc-num">3</span> Code Splitting</a></li>
+        <li><a href="#" class="toc-link" data-toc="reflow"><svg class="section-icon"><use href="#icon-resize"/></svg><span class="toc-num">4</span> Reflow / Repaint</a></li>
+        <li><a href="#" class="toc-link" data-toc="virtualization"><svg class="section-icon"><use href="#icon-virtual"/></svg><span class="toc-num">5</span> Virtualization</a></li>
+        <li><a href="#" class="toc-link" data-toc="memoization"><svg class="section-icon"><use href="#icon-cache"/></svg><span class="toc-num">6</span> Memoization</a></li>
+        <li><a href="#" class="toc-link" data-toc="webWorker"><svg class="section-icon"><use href="#icon-worker"/></svg><span class="toc-num">7</span> Web Worker</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SLIDE 01: 왜 측정이 먼저인가 -->
+  <section data-index="1">
+    <span class="section-num">1</span>
+    <div class="center-layout slide-center-brief">
+      <div class="slide-center-inner">
+        <h2 class="slide-title slide-center-title">왜 측정이 먼저인가</h2>
+        <p class="slide-tagline slide-center-tagline">최적화는 병목 식별에서 출발</p>
+
+        <ul class="measure-first-problems" aria-label="측정 없이 최적화할 때의 문제">
+          <li class="measure-first-problem">
+            <span class="measure-first-problem-icon" aria-hidden="true"><svg><use href="#icon-warning"/></svg></span>
+            <div class="measure-first-problem-body">
+              <strong class="measure-first-problem-title">체감 불일치</strong>
+              <span class="measure-first-problem-desc">개발 환경에서 빠르다고 느낀 구간이, 실제 사용자·기기에서는 느릴 수 있음</span>
+            </div>
+          </li>
+          <li class="measure-first-problem">
+            <span class="measure-first-problem-icon" aria-hidden="true"><svg><use href="#icon-warning"/></svg></span>
+            <div class="measure-first-problem-body">
+              <strong class="measure-first-problem-title">추측 최적화</strong>
+              <span class="measure-first-problem-desc">"느릴 것 같다"는 곳을 고치다 병목과 다른 구간에 시간을 씀</span>
+            </div>
+          </li>
+          <li class="measure-first-problem">
+            <span class="measure-first-problem-icon" aria-hidden="true"><svg><use href="#icon-warning"/></svg></span>
+            <div class="measure-first-problem-body">
+              <strong class="measure-first-problem-title">효과 미검증</strong>
+              <span class="measure-first-problem-desc">고쳤는지, 얼마나 빨라졌는지 숫자 없이는 확인할 수 없음</span>
+            </div>
+          </li>
+        </ul>
+
+        <div class="measure-first-divider" aria-hidden="true">
+          <svg class="measure-first-divider-icon"><use href="#icon-chevron-down"/></svg>
+        </div>
+
+        <div class="measure-first-conclusion" aria-label="올바른 최적화 순서">
+          <div class="slide-center-flow measure-first-flow">
+            <span class="slide-flow-step">측정</span>
+            <span class="slide-flow-arrow" aria-hidden="true"></span>
+            <span class="slide-flow-step">병목 식별</span>
+            <span class="slide-flow-arrow" aria-hidden="true"></span>
+            <span class="slide-flow-step">개선</span>
+            <span class="slide-flow-arrow" aria-hidden="true"></span>
+            <span class="slide-flow-step slide-flow-step--accent">재측정</span>
+          </div>
+          <p class="measure-first-conclusion-note">추측 최적화보다 <strong>병목 하나 제거</strong>가 더 효과적</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 02: 측정 생태계 개요 -->
+  <section data-index="2">
+    <span class="section-num">2</span>
+    <div class="center-layout slide-center-brief">
+      <div class="slide-center-inner slide-center-inner--wide">
+        <h2 class="slide-title slide-center-title">어떻게 측정하는가</h2>
+        <p class="slide-tagline slide-center-tagline">지표와 도구의 관계 정리</p>
+
+        <div class="measure-ecosystem">
+
+          <!-- WHY row -->
+          <div class="measure-eco-row measure-eco-row--why">
+            <span class="measure-eco-label">
+              <svg class="measure-eco-label-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+              중요한 이유<br><em>WHY</em>
+            </span>
+            <div class="measure-eco-tools">
+              <div class="measure-eco-block measure-eco-block--tool measure-eco-block--why-ux">
+                <div class="measure-eco-block-head">
+                  <svg class="measure-eco-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                  <span class="measure-eco-title">UX 기준</span>
+                </div>
+                <span class="measure-eco-tool-badge measure-eco-tool-badge--why-ux">사용자 경험</span>
+                <ul class="measure-eco-feats">
+                  <li><svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.5 3.5L6 11 2.5 7.5l-1 1L6 13l8.5-8.5z"/></svg>실제 체감 성능을 수치로 정량화</li>
+                  <li><svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.5 3.5L6 11 2.5 7.5l-1 1L6 13l8.5-8.5z"/></svg>이탈률 및 전환율에 직접 영향</li>
+                </ul>
+              </div>
+              <div class="measure-eco-block measure-eco-block--tool measure-eco-block--why-seo">
+                <div class="measure-eco-block-head">
+                  <svg class="measure-eco-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                  <span class="measure-eco-title">SEO 반영</span>
+                </div>
+                <span class="measure-eco-tool-badge measure-eco-tool-badge--why-seo">검색 순위</span>
+                <ul class="measure-eco-feats">
+                  <li><svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.5 3.5L6 11 2.5 7.5l-1 1L6 13l8.5-8.5z"/></svg>Google Page Experience Signal</li>
+                  <li><svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.5 3.5L6 11 2.5 7.5l-1 1L6 13l8.5-8.5z"/></svg>점수 미달 시 검색 노출 하락</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="measure-eco-connector" aria-hidden="true"></div>
+
+          <!-- WHAT row -->
+          <div class="measure-eco-row measure-eco-row--what">
+            <span class="measure-eco-label">
+              <svg class="measure-eco-label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              측정 대상<br><em>WHAT</em>
+            </span>
+            <div class="measure-eco-block measure-eco-block--metric">
+              <div class="measure-eco-block-head">
+                <svg class="measure-eco-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+                <span class="measure-eco-title">Core Web Vitals</span>
+              </div>
+              <span class="measure-eco-sub">Google이 정의한 핵심 UX 지표</span>
+              <div class="measure-eco-pills">
+                <span class="measure-eco-pill measure-eco-pill--lcp">
+                  <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h12v2H2zm0 4h8v2H2zm0 4h10v2H2z"/></svg>
+                  LCP (로딩 속도)
+                </span>
+                <span class="measure-eco-pill measure-eco-pill--inp">
+                  <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM7 4h2v5H7zm0 6h2v2H7z"/></svg>
+                  INP (반응성)
+                </span>
+                <span class="measure-eco-pill measure-eco-pill--cls">
+                  <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h5v5H2zm7 0h5v5H9zM2 9h5v5H2zm7 0h5v5H9z"/></svg>
+                  CLS (시각 안정성)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="measure-eco-connector" aria-hidden="true"></div>
+
+          <!-- HOW row -->
+          <div class="measure-eco-row measure-eco-row--how">
+            <span class="measure-eco-label">
+              <svg class="measure-eco-label-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
+              측정 방법<br><em>HOW</em>
+            </span>
+            <div class="measure-eco-tools">
+              <div class="measure-eco-block measure-eco-block--tool measure-eco-block--auto">
+                <div class="measure-eco-block-head">
+                  <svg class="measure-eco-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                  <span class="measure-eco-title">Lighthouse</span>
+                </div>
+                <span class="measure-eco-tool-badge measure-eco-tool-badge--auto">
+                  <svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l1.5 3 3.5.5-2.5 2.5.5 3.5L6 9 3 10.5l.5-3.5L1 4.5 4.5 4z"/></svg>
+                  자동 감사
+                </span>
+                <ul class="measure-eco-feats">
+                  <li>
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.5 3.5L6 11 2.5 7.5l-1 1L6 13l8.5-8.5z"/></svg>
+                    종합 점수 0–100
+                  </li>
+                  <li>
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.5 3.5L6 11 2.5 7.5l-1 1L6 13l8.5-8.5z"/></svg>
+                    문제 항목 목록
+                  </li>
+                  <li>
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.5 3.5L6 11 2.5 7.5l-1 1L6 13l8.5-8.5z"/></svg>
+                    DevTools 탭 또는 CLI
+                  </li>
+                </ul>
+              </div>
+              <div class="measure-eco-block measure-eco-block--tool measure-eco-block--manual">
+                <div class="measure-eco-block-head">
+                  <svg class="measure-eco-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                  <span class="measure-eco-title">DevTools Performance</span>
+                </div>
+                <span class="measure-eco-tool-badge measure-eco-tool-badge--manual">
+                  <svg viewBox="0 0 12 12" fill="currentColor"><path d="M1 2h10v1H1zm2 2h6v1H3zm-1 2h8v1H2zm1 2h6v1H3z"/></svg>
+                  수동 분석
+                </span>
+                <ul class="measure-eco-feats">
+                  <li>
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.5 3.5L6 11 2.5 7.5l-1 1L6 13l8.5-8.5z"/></svg>
+                    타임라인 기록
+                  </li>
+                  <li>
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.5 3.5L6 11 2.5 7.5l-1 1L6 13l8.5-8.5z"/></svg>
+                    병목 함수 추적
+                  </li>
+                  <li>
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.5 3.5L6 11 2.5 7.5l-1 1L6 13l8.5-8.5z"/></svg>
+                    Lighthouse 이후 깊은 분석
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <p class="slide-callout">지표(<span class="measure-eco-hl measure-eco-hl--cwv">CWV</span>)를 먼저 이해하고
+          <svg style="width:1em;height:1em;vertical-align:-0.15em;margin:0 0.2em" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+          도구(<span class="measure-eco-hl measure-eco-hl--lh">Lighthouse</span> / <span class="measure-eco-hl measure-eco-hl--dt">DevTools</span>)로 측정한다
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 03: Core Web Vitals란 -->
+  <section data-index="3">
+    <span class="section-num">3</span>
+    <div class="center-layout slide-center-brief slide-center-brief--cwv">
+      <div class="slide-center-inner slide-center-inner--wide">
+        <h2 class="slide-title slide-center-title">Core Web Vitals란</h2>
+        <p class="slide-tagline slide-center-tagline">Google이 정의한 사용자 경험 핵심 지표</p>
+
+        <div class="cwv-main-cols">
+          <div class="cwv-main-col cwv-main-col--lcp">
+            <span class="cwv-main-badge">LCP</span>
+            <div class="cwv-main-kicker">로딩 속도</div>
+            <div class="cwv-en">
+              <span class="cwv-w1">Largest</span>
+              <span class="cwv-w2">Contentful</span>
+              <span class="cwv-w3">Paint</span>
+            </div>
+            <p class="cwv-kr">
+              <span class="cwv-w1">가장 큰</span>
+              <span class="cwv-w2">콘텐츠 요소</span>가<br />
+              <span class="cwv-w3">그려지기까지</span>
+              걸린 시간
+            </p>
+            <span class="cwv-main-threshold">2.5s 이하</span>
+          </div>
+          <div class="cwv-main-col cwv-main-col--inp">
+            <span class="cwv-main-badge">INP</span>
+            <div class="cwv-main-kicker">반응성</div>
+            <div class="cwv-en">
+              <span class="cwv-w1">Interaction</span>
+              <span class="cwv-w2">to Next</span>
+              <span class="cwv-w3">Paint</span>
+            </div>
+            <p class="cwv-kr">
+              <span class="cwv-w1">상호작용</span> 후
+              <span class="cwv-w2">다음 화면</span>이<br />
+              <span class="cwv-w3">그려지기까지</span>
+              걸린 시간
+            </p>
+            <span class="cwv-main-threshold">200ms 이하</span>
+          </div>
+          <div class="cwv-main-col cwv-main-col--cls">
+            <span class="cwv-main-badge">CLS</span>
+            <div class="cwv-main-kicker">시각적 안정성</div>
+            <div class="cwv-en">
+              <span class="cwv-w1">Cumulative</span>
+              <span class="cwv-w2">Layout</span>
+              <span class="cwv-w3">Shift</span>
+            </div>
+            <p class="cwv-kr">
+              예기치 않은
+              <span class="cwv-w2">레이아웃</span>
+              <span class="cwv-w3">이동</span>의<br />
+              <span class="cwv-w1">누적</span> 점수
+            </p>
+            <span class="cwv-main-threshold">0.1 이하</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 04: LCP 상세 -->
+  <section data-index="4">
+    <span class="section-num">4</span>
+    <div class="split">
+      <div class="split-left slide-brief">
+        <h2 class="slide-title">LCP 상세</h2>
+        <p class="slide-tagline">Largest Contentful Paint, 로딩 완료 체감 시점</p>
+
+        <div class="slide-hero-card slide-hero-card--lcp">
+          <div class="slide-hero-main">
+            <span class="slide-hero-kicker">정의</span>
+            <p class="slide-hero-text">화면에서 <strong>가장 큰 콘텐츠</strong>가 렌더되기까지 걸린 시간</p>
+            <p class="slide-hero-note">뷰포트에서 가장 넓은 면적의 이미지 또는 텍스트 블록이 LCP 요소로 선정</p>
+          </div>
+          <div class="slide-threshold">
+            <span class="slide-threshold-kicker">Good</span>
+            <span class="slide-threshold-value">2.5s</span>
+            <span class="slide-threshold-unit">이하</span>
+          </div>
+        </div>
+
+        <p class="slide-callout slide-callout--warn">페이지 로딩이 2.5s를 초과하면 사용자 이탈률 급등</p>
+
+        <div class="slide-panel">
+          <h3 class="slide-panel-head">흔한 원인</h3>
+          <ul class="slide-point-list">
+            <li><strong>렌더 블로킹</strong><span>head의 CSS와 JS 로드가 끝나야 첫 화면이 그려짐</span></li>
+            <li><strong>느린 TTFB</strong><span>서버 응답이 느리면 브라우저가 HTML을 늦게 받음</span></li>
+            <li><strong>미최적화 히어로</strong><span>용량이 큰 이미지가 LCP 요소가 되면 점수가 낮아짐</span></li>
+          </ul>
+        </div>
+
+      </div>
+      <div class="split-right">
+        <div class="metric-viz lcp-viz">
+          <p class="metric-viz-heading">렌더링 속도에 따라 LCP 시점이 달라진다</p>
+          <div class="metric-timeline-head">
+            <span>0ms</span>
+            <span class="metric-threshold-tag">2.5s 기준 (Good)</span>
+            <span>4000ms</span>
+          </div>
+          <div class="metric-row before">
+            <span class="metric-row-label">느린 렌더링</span>
+            <div class="metric-track">
+              <div class="metric-threshold" style="left:62.5%" aria-hidden="true"></div>
+              <div class="metric-marker poor" style="left:87.5%">
+                <span class="metric-marker-tag">LCP 3.5s / Poor</span>
+              </div>
+            </div>
+          </div>
+          <div class="metric-row after">
+            <span class="metric-row-label">빠른 렌더링</span>
+            <div class="metric-track">
+              <div class="metric-threshold" style="left:62.5%" aria-hidden="true"></div>
+              <div class="metric-marker good" style="left:30%">
+                <span class="metric-marker-tag">LCP 1.2s / Good</span>
+              </div>
+            </div>
+          </div>
+          <div class="metric-preview-grid">
+            <div class="metric-preview-col metric-preview-col--poor">
+              <span class="metric-preview-label">느린 렌더링</span>
+              <div class="metric-preview-browser">
+                <div class="metric-preview-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
+                <div class="metric-preview-viewport lcp-preview-viewport lcp-preview-viewport--slow">
+                  <div class="lcp-preview-page">
+                    <header class="lcp-shop-top" aria-hidden="true">
+                      <span class="lcp-shop-mark"></span>
+                      <span class="lcp-shop-search"></span>
+                      <span class="lcp-shop-icon"></span>
+                    </header>
+                    <div class="lcp-shop-tabs" aria-hidden="true">
+                      <span class="lcp-shop-tab"></span>
+                      <span class="lcp-shop-tab"></span>
+                      <span class="lcp-shop-tab"></span>
+                      <span class="lcp-shop-tab lcp-shop-tab--on"></span>
+                    </div>
+                    <div class="lcp-shop-banner">
+                      <span class="lcp-img-paint lcp-img-paint--hero" aria-hidden="true"></span>
+                      <span class="lcp-shop-chip lcp-shop-chip--hero">50% off</span>
+                      <span class="metric-preview-badge lcp-preview-badge">LCP</span>
+                    </div>
+                    <div class="lcp-shop-row-head" aria-hidden="true"><span></span><span></span></div>
+                    <div class="lcp-shop-feed">
+                      <article class="lcp-shop-item">
+                        <div class="lcp-shop-item-media">
+                          <span class="lcp-img-paint lcp-img-paint--p1" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="2" width="10" height="5" rx="2" fill="rgba(0,0,0,0.18)"/><rect x="15" y="33" width="10" height="5" rx="2" fill="rgba(0,0,0,0.18)"/><circle cx="20" cy="20" r="11" fill="rgba(255,255,255,0.32)" stroke="rgba(0,0,0,0.26)" stroke-width="2"/><line x1="20" y1="20" x2="20" y2="13" stroke="rgba(0,0,0,0.5)" stroke-width="2" stroke-linecap="round"/><line x1="20" y1="20" x2="25" y2="20" stroke="rgba(0,0,0,0.4)" stroke-width="1.5" stroke-linecap="round"/><circle cx="20" cy="20" r="1.5" fill="rgba(0,0,0,0.5)"/></svg></span>
+                          <span class="lcp-shop-chip lcp-shop-chip--item">50% off</span>
+                        </div>
+                        <div class="lcp-shop-item-copy" aria-hidden="true"><span class="lcp-item-name">Watch Pro</span><span class="lcp-item-price">$299</span></div>
+                      </article>
+                      <article class="lcp-shop-item">
+                        <div class="lcp-shop-item-media">
+                          <span class="lcp-img-paint lcp-img-paint--p2" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 29 L5 22 Q8 16 15 15 L21 14 Q28 12 33 18 L35 24 L35 29 Z" fill="rgba(255,255,255,0.32)"/><rect x="5" y="29" width="30" height="5" rx="2.5" fill="rgba(0,0,0,0.28)"/><ellipse cx="11" cy="20" rx="4" ry="4" fill="rgba(255,255,255,0.4)"/><line x1="19" y1="14" x2="18" y2="25" stroke="rgba(0,0,0,0.13)" stroke-width="1.5" stroke-linecap="round"/><line x1="23" y1="13" x2="22" y2="25" stroke="rgba(0,0,0,0.1)" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+                        </div>
+                        <div class="lcp-shop-item-copy" aria-hidden="true"><span class="lcp-item-name">Air Runners</span><span class="lcp-item-price">$149</span></div>
+                      </article>
+                      <article class="lcp-shop-item">
+                        <div class="lcp-shop-item-media">
+                          <span class="lcp-img-paint lcp-img-paint--p3" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="7" width="28" height="19" rx="2" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.28)" stroke-width="1.5"/><rect x="9" y="10" width="22" height="13" rx="1" fill="rgba(0,0,0,0.1)"/><path d="M2 26 L6 26 L34 26 L38 26 L38 28 Q38 30 36 30 L4 30 Q2 30 2 28 Z" fill="rgba(0,0,0,0.26)"/><rect x="17" y="30" width="6" height="1.5" rx="0.75" fill="rgba(0,0,0,0.18)"/></svg></span>
+                          <span class="lcp-shop-chip lcp-shop-chip--item lcp-shop-chip--red">30%</span>
+                        </div>
+                        <div class="lcp-shop-item-copy" aria-hidden="true"><span class="lcp-item-name">Laptop 16"</span><span class="lcp-item-price">$899</span></div>
+                      </article>
+                      <article class="lcp-shop-item">
+                        <div class="lcp-shop-item-media">
+                          <span class="lcp-img-paint lcp-img-paint--p4" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 15 Q14 8 20 8 Q26 8 26 15" stroke="rgba(0,0,0,0.28)" stroke-width="2.5" fill="none" stroke-linecap="round"/><rect x="8" y="15" width="24" height="19" rx="4" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.2)" stroke-width="1.5"/><line x1="20" y1="15" x2="20" y2="34" stroke="rgba(0,0,0,0.1)" stroke-width="1"/><circle cx="20" cy="24" r="2.5" fill="rgba(0,0,0,0.18)"/></svg></span>
+                        </div>
+                        <div class="lcp-shop-item-copy" aria-hidden="true"><span class="lcp-item-name">Tote Bag</span><span class="lcp-item-price">$459</span></div>
+                      </article>
+                      <article class="lcp-shop-item">
+                        <div class="lcp-shop-item-media">
+                          <span class="lcp-img-paint lcp-img-paint--p5" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="15" width="14" height="11" rx="5" fill="rgba(255,255,255,0.2)" stroke="rgba(0,0,0,0.38)" stroke-width="2.5"/><rect x="22" y="15" width="14" height="11" rx="5" fill="rgba(255,255,255,0.2)" stroke="rgba(0,0,0,0.38)" stroke-width="2.5"/><line x1="18" y1="20" x2="22" y2="20" stroke="rgba(0,0,0,0.32)" stroke-width="2"/><line x1="4" y1="20" x2="1" y2="14" stroke="rgba(0,0,0,0.28)" stroke-width="2" stroke-linecap="round"/><line x1="36" y1="20" x2="39" y2="14" stroke="rgba(0,0,0,0.28)" stroke-width="2" stroke-linecap="round"/></svg></span>
+                          <span class="lcp-shop-chip lcp-shop-chip--item">20% off</span>
+                        </div>
+                        <div class="lcp-shop-item-copy" aria-hidden="true"><span class="lcp-item-name">Shades UV</span><span class="lcp-item-price">$89</span></div>
+                      </article>
+                      <article class="lcp-shop-item">
+                        <div class="lcp-shop-item-media">
+                          <span class="lcp-img-paint lcp-img-paint--p6" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 24 Q8 10 20 10 Q32 10 32 24" stroke="rgba(0,0,0,0.28)" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="4" y="22" width="8" height="12" rx="4" fill="rgba(255,255,255,0.35)" stroke="rgba(0,0,0,0.22)" stroke-width="1.5"/><rect x="28" y="22" width="8" height="12" rx="4" fill="rgba(255,255,255,0.35)" stroke="rgba(0,0,0,0.22)" stroke-width="1.5"/></svg></span>
+                        </div>
+                        <div class="lcp-shop-item-copy" aria-hidden="true"><span class="lcp-item-name">Headphones</span><span class="lcp-item-price">$199</span></div>
+                      </article>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <span class="metric-preview-score poor">LCP 3.5s / Poor</span>
+            </div>
+            <div class="metric-preview-col metric-preview-col--good">
+              <span class="metric-preview-label">빠른 렌더링</span>
+              <div class="metric-preview-browser">
+                <div class="metric-preview-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
+                <div class="metric-preview-viewport lcp-preview-viewport lcp-preview-viewport--fast">
+                  <div class="lcp-preview-page">
+                    <header class="lcp-shop-top" aria-hidden="true">
+                      <span class="lcp-shop-mark"></span>
+                      <span class="lcp-shop-search"></span>
+                      <span class="lcp-shop-icon"></span>
+                    </header>
+                    <div class="lcp-shop-tabs" aria-hidden="true">
+                      <span class="lcp-shop-tab"></span>
+                      <span class="lcp-shop-tab"></span>
+                      <span class="lcp-shop-tab"></span>
+                      <span class="lcp-shop-tab lcp-shop-tab--on"></span>
+                    </div>
+                    <div class="lcp-shop-banner">
+                      <span class="lcp-img-paint lcp-img-paint--hero" aria-hidden="true"></span>
+                      <span class="lcp-shop-chip lcp-shop-chip--hero">50% off</span>
+                      <span class="metric-preview-badge lcp-preview-badge">LCP</span>
+                    </div>
+                    <div class="lcp-shop-row-head" aria-hidden="true"><span></span><span></span></div>
+                    <div class="lcp-shop-feed">
+                      <article class="lcp-shop-item">
+                        <div class="lcp-shop-item-media">
+                          <span class="lcp-img-paint lcp-img-paint--p1" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="2" width="10" height="5" rx="2" fill="rgba(0,0,0,0.18)"/><rect x="15" y="33" width="10" height="5" rx="2" fill="rgba(0,0,0,0.18)"/><circle cx="20" cy="20" r="11" fill="rgba(255,255,255,0.32)" stroke="rgba(0,0,0,0.26)" stroke-width="2"/><line x1="20" y1="20" x2="20" y2="13" stroke="rgba(0,0,0,0.5)" stroke-width="2" stroke-linecap="round"/><line x1="20" y1="20" x2="25" y2="20" stroke="rgba(0,0,0,0.4)" stroke-width="1.5" stroke-linecap="round"/><circle cx="20" cy="20" r="1.5" fill="rgba(0,0,0,0.5)"/></svg></span>
+                          <span class="lcp-shop-chip lcp-shop-chip--item">50% off</span>
+                        </div>
+                        <div class="lcp-shop-item-copy" aria-hidden="true"><span class="lcp-item-name">Watch Pro</span><span class="lcp-item-price">$299</span></div>
+                      </article>
+                      <article class="lcp-shop-item">
+                        <div class="lcp-shop-item-media">
+                          <span class="lcp-img-paint lcp-img-paint--p2" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 29 L5 22 Q8 16 15 15 L21 14 Q28 12 33 18 L35 24 L35 29 Z" fill="rgba(255,255,255,0.32)"/><rect x="5" y="29" width="30" height="5" rx="2.5" fill="rgba(0,0,0,0.28)"/><ellipse cx="11" cy="20" rx="4" ry="4" fill="rgba(255,255,255,0.4)"/><line x1="19" y1="14" x2="18" y2="25" stroke="rgba(0,0,0,0.13)" stroke-width="1.5" stroke-linecap="round"/><line x1="23" y1="13" x2="22" y2="25" stroke="rgba(0,0,0,0.1)" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+                        </div>
+                        <div class="lcp-shop-item-copy" aria-hidden="true"><span class="lcp-item-name">Air Runners</span><span class="lcp-item-price">$149</span></div>
+                      </article>
+                      <article class="lcp-shop-item">
+                        <div class="lcp-shop-item-media">
+                          <span class="lcp-img-paint lcp-img-paint--p3" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="7" width="28" height="19" rx="2" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.28)" stroke-width="1.5"/><rect x="9" y="10" width="22" height="13" rx="1" fill="rgba(0,0,0,0.1)"/><path d="M2 26 L6 26 L34 26 L38 26 L38 28 Q38 30 36 30 L4 30 Q2 30 2 28 Z" fill="rgba(0,0,0,0.26)"/><rect x="17" y="30" width="6" height="1.5" rx="0.75" fill="rgba(0,0,0,0.18)"/></svg></span>
+                          <span class="lcp-shop-chip lcp-shop-chip--item lcp-shop-chip--red">30%</span>
+                        </div>
+                        <div class="lcp-shop-item-copy" aria-hidden="true"><span class="lcp-item-name">Laptop 16"</span><span class="lcp-item-price">$899</span></div>
+                      </article>
+                      <article class="lcp-shop-item">
+                        <div class="lcp-shop-item-media">
+                          <span class="lcp-img-paint lcp-img-paint--p4" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 15 Q14 8 20 8 Q26 8 26 15" stroke="rgba(0,0,0,0.28)" stroke-width="2.5" fill="none" stroke-linecap="round"/><rect x="8" y="15" width="24" height="19" rx="4" fill="rgba(255,255,255,0.3)" stroke="rgba(0,0,0,0.2)" stroke-width="1.5"/><line x1="20" y1="15" x2="20" y2="34" stroke="rgba(0,0,0,0.1)" stroke-width="1"/><circle cx="20" cy="24" r="2.5" fill="rgba(0,0,0,0.18)"/></svg></span>
+                        </div>
+                        <div class="lcp-shop-item-copy" aria-hidden="true"><span class="lcp-item-name">Tote Bag</span><span class="lcp-item-price">$459</span></div>
+                      </article>
+                      <article class="lcp-shop-item">
+                        <div class="lcp-shop-item-media">
+                          <span class="lcp-img-paint lcp-img-paint--p5" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="15" width="14" height="11" rx="5" fill="rgba(255,255,255,0.2)" stroke="rgba(0,0,0,0.38)" stroke-width="2.5"/><rect x="22" y="15" width="14" height="11" rx="5" fill="rgba(255,255,255,0.2)" stroke="rgba(0,0,0,0.38)" stroke-width="2.5"/><line x1="18" y1="20" x2="22" y2="20" stroke="rgba(0,0,0,0.32)" stroke-width="2"/><line x1="4" y1="20" x2="1" y2="14" stroke="rgba(0,0,0,0.28)" stroke-width="2" stroke-linecap="round"/><line x1="36" y1="20" x2="39" y2="14" stroke="rgba(0,0,0,0.28)" stroke-width="2" stroke-linecap="round"/></svg></span>
+                          <span class="lcp-shop-chip lcp-shop-chip--item">20% off</span>
+                        </div>
+                        <div class="lcp-shop-item-copy" aria-hidden="true"><span class="lcp-item-name">Shades UV</span><span class="lcp-item-price">$89</span></div>
+                      </article>
+                      <article class="lcp-shop-item">
+                        <div class="lcp-shop-item-media">
+                          <span class="lcp-img-paint lcp-img-paint--p6" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 24 Q8 10 20 10 Q32 10 32 24" stroke="rgba(0,0,0,0.28)" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="4" y="22" width="8" height="12" rx="4" fill="rgba(255,255,255,0.35)" stroke="rgba(0,0,0,0.22)" stroke-width="1.5"/><rect x="28" y="22" width="8" height="12" rx="4" fill="rgba(255,255,255,0.35)" stroke="rgba(0,0,0,0.22)" stroke-width="1.5"/></svg></span>
+                        </div>
+                        <div class="lcp-shop-item-copy" aria-hidden="true"><span class="lcp-item-name">Headphones</span><span class="lcp-item-price">$199</span></div>
+                      </article>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <span class="metric-preview-score good">LCP 1.2s / Good</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 05: INP 상세 -->
+  <section data-index="5">
+    <span class="section-num">5</span>
+    <div class="split">
+      <div class="split-left slide-brief">
+        <h2 class="slide-title">INP 상세</h2>
+        <p class="slide-tagline">Interaction to Next Paint, 클릭 후 화면 반응 지연 측정</p>
+
+        <div class="slide-hero-card slide-hero-card--inp">
+          <div class="slide-hero-main">
+            <span class="slide-hero-kicker">정의</span>
+            <p class="slide-hero-text">클릭, 탭, 키 입력 후 <strong>다음 화면이 그려질 때</strong>까지의 지연</p>
+            <p class="slide-hero-note">페이지 수명 동안 발생한 모든 상호작용 중 가장 느린 응답이 대표값</p>
+          </div>
+          <div class="slide-threshold">
+            <span class="slide-threshold-kicker">Good</span>
+            <span class="slide-threshold-value">200</span>
+            <span class="slide-threshold-unit">ms 이하</span>
+          </div>
+        </div>
+
+        <p class="slide-callout slide-callout--inp">200ms 이상 무반응이면 재클릭이 반복되며 UX가 저하됨</p>
+
+        <div class="slide-panel">
+          <h3 class="slide-panel-head">느려지는 원인</h3>
+          <ul class="slide-point-list">
+            <li><strong>Long Task</strong><span>JS가 50ms 이상 실행되면 그동안 입력을 처리할 수 없음</span></li>
+            <li><strong>입력 큐 적체</strong><span>Long Task가 끝날 때까지 클릭과 스크롤이 대기열에 쌓임</span></li>
+            <li><strong>과도한 렌더링</strong><span>이벤트 처리 후 불필요한 컴포넌트 재렌더가 응답을 지연시킴</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="split-right">
+        <div class="metric-viz inp-viz">
+          <p class="metric-viz-heading">응답 속도에 따라 INP 시점이 달라진다</p>
+          <div class="metric-timeline-head">
+            <span>클릭</span>
+            <span class="metric-threshold-tag">200ms 기준 (Good)</span>
+            <span>화면 반응</span>
+          </div>
+          <div class="metric-row before">
+            <span class="metric-row-label">느린 응답</span>
+            <div class="metric-track inp-track">
+              <div class="metric-click" title="사용자 클릭"></div>
+              <div class="metric-block poor long-task">
+                <span class="metric-block-label">Long Task <span class="inp-block-ms">0</span>ms</span>
+              </div>
+              <div class="metric-response" title="화면 반응"></div>
+              <div class="metric-threshold" aria-hidden="true"></div>
+              <span class="metric-inp-tag poor">INP <span class="inp-tag-ms">0</span>ms / Poor</span>
+            </div>
+          </div>
+          <div class="metric-row after">
+            <span class="metric-row-label">빠른 응답</span>
+            <div class="metric-track inp-track">
+              <div class="metric-click" title="사용자 클릭"></div>
+              <div class="metric-block good">
+                <span class="metric-block-label">처리 <span class="inp-block-ms">0</span>ms</span>
+              </div>
+              <div class="metric-response" title="화면 반응"></div>
+              <div class="metric-threshold" aria-hidden="true"></div>
+              <span class="metric-inp-tag good">INP <span class="inp-tag-ms">0</span>ms / Good</span>
+            </div>
+          </div>
+          <div class="metric-preview-grid">
+            <div class="metric-preview-col metric-preview-col--poor">
+              <span class="metric-preview-label">느린 응답</span>
+              <div class="metric-preview-browser">
+                <div class="metric-preview-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
+                <div class="metric-preview-viewport inp-preview-viewport inp-preview-viewport--slow">
+                  <div class="inp-preview-app">
+                    <div class="inp-preview-header">
+                      <span class="inp-preview-header-title">배송 정보</span>
+                      <span class="inp-preview-header-step">결제 2/3</span>
+                    </div>
+                    <div class="inp-preview-body">
+                      <div class="inp-preview-order">
+                        <span class="inp-preview-order-thumb" aria-hidden="true"></span>
+                        <div class="inp-preview-order-meta">
+                          <span class="inp-preview-order-name">린넨 셔츠 (M / 화이트)</span>
+                          <span class="inp-preview-order-price">₩49,000</span>
+                        </div>
+                      </div>
+                      <div class="inp-preview-fields">
+                        <div class="inp-preview-field">
+                          <span class="inp-preview-field-label">받는 분</span>
+                          <span class="inp-preview-input inp-preview-input--filled">Hong Gil-dong</span>
+                        </div>
+                        <div class="inp-preview-field">
+                          <span class="inp-preview-field-label">연락처</span>
+                          <span class="inp-preview-input inp-preview-input--filled">010-1234-5678</span>
+                        </div>
+                        <div class="inp-preview-field">
+                          <span class="inp-preview-field-label">우편번호</span>
+                          <span class="inp-preview-input inp-preview-input--filled">06234</span>
+                        </div>
+                        <div class="inp-preview-field">
+                          <span class="inp-preview-field-label">배송지</span>
+                          <span class="inp-preview-input inp-preview-input--filled inp-preview-input--address">서울 강남구 테헤란로 123</span>
+                        </div>
+                        <div class="inp-preview-field">
+                          <span class="inp-preview-field-label">상세 주소</span>
+                          <span class="inp-preview-input inp-preview-input--filled">4층 401호</span>
+                        </div>
+                      </div>
+                      <div class="inp-preview-actions">
+                        <button type="button" class="inp-preview-btn">저장</button>
+                      </div>
+                    </div>
+                    <div class="inp-preview-loading" aria-hidden="true">
+                      <div class="inp-preview-loading-backdrop"></div>
+                      <span class="inp-preview-loading-spinner"></span>
+                    </div>
+                    <div class="inp-preview-modal" aria-hidden="true">
+                      <div class="inp-preview-modal-backdrop"></div>
+                      <div class="inp-preview-modal-dialog">
+                        <span class="inp-preview-modal-icon">✓</span>
+                        <span class="inp-preview-modal-title">배송 정보 저장</span>
+                        <span class="inp-preview-modal-desc">결제 전 배송지가 업데이트되었습니다</span>
+                        <button type="button" class="inp-preview-modal-btn">확인</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <span class="metric-preview-score poor">INP 350ms / Poor</span>
+            </div>
+            <div class="metric-preview-col metric-preview-col--good">
+              <span class="metric-preview-label">빠른 응답</span>
+              <div class="metric-preview-browser">
+                <div class="metric-preview-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
+                <div class="metric-preview-viewport inp-preview-viewport inp-preview-viewport--fast">
+                  <div class="inp-preview-app">
+                    <div class="inp-preview-header">
+                      <span class="inp-preview-header-title">배송 정보</span>
+                      <span class="inp-preview-header-step">결제 2/3</span>
+                    </div>
+                    <div class="inp-preview-body">
+                      <div class="inp-preview-order">
+                        <span class="inp-preview-order-thumb" aria-hidden="true"></span>
+                        <div class="inp-preview-order-meta">
+                          <span class="inp-preview-order-name">린넨 셔츠 (M / 화이트)</span>
+                          <span class="inp-preview-order-price">₩49,000</span>
+                        </div>
+                      </div>
+                      <div class="inp-preview-fields">
+                        <div class="inp-preview-field">
+                          <span class="inp-preview-field-label">받는 분</span>
+                          <span class="inp-preview-input inp-preview-input--filled">Hong Gil-dong</span>
+                        </div>
+                        <div class="inp-preview-field">
+                          <span class="inp-preview-field-label">연락처</span>
+                          <span class="inp-preview-input inp-preview-input--filled">010-1234-5678</span>
+                        </div>
+                        <div class="inp-preview-field">
+                          <span class="inp-preview-field-label">우편번호</span>
+                          <span class="inp-preview-input inp-preview-input--filled">06234</span>
+                        </div>
+                        <div class="inp-preview-field">
+                          <span class="inp-preview-field-label">배송지</span>
+                          <span class="inp-preview-input inp-preview-input--filled inp-preview-input--address">서울 강남구 테헤란로 123</span>
+                        </div>
+                        <div class="inp-preview-field">
+                          <span class="inp-preview-field-label">상세 주소</span>
+                          <span class="inp-preview-input inp-preview-input--filled">4층 401호</span>
+                        </div>
+                      </div>
+                      <div class="inp-preview-actions">
+                        <button type="button" class="inp-preview-btn">저장</button>
+                      </div>
+                    </div>
+                    <div class="inp-preview-loading" aria-hidden="true">
+                      <div class="inp-preview-loading-backdrop"></div>
+                      <span class="inp-preview-loading-spinner"></span>
+                    </div>
+                    <div class="inp-preview-modal" aria-hidden="true">
+                      <div class="inp-preview-modal-backdrop"></div>
+                      <div class="inp-preview-modal-dialog">
+                        <span class="inp-preview-modal-icon">✓</span>
+                        <span class="inp-preview-modal-title">배송 정보 저장</span>
+                        <span class="inp-preview-modal-desc">결제 전 배송지가 업데이트되었습니다</span>
+                        <button type="button" class="inp-preview-modal-btn">확인</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <span class="metric-preview-score good">INP 80ms / Good</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 06: CLS 상세 -->
+  <section data-index="6">
+    <span class="section-num">6</span>
+    <div class="split">
+      <div class="split-left slide-brief">
+        <h2 class="slide-title">CLS 상세</h2>
+        <p class="slide-tagline">Cumulative Layout Shift, 레이아웃 안정성 지표</p>
+
+        <div class="slide-hero-card slide-hero-card--cls">
+          <div class="slide-hero-main">
+            <span class="slide-hero-kicker">정의</span>
+            <p class="slide-hero-text">로딩 중 요소가 <strong>예상치 못하게 이동</strong>한 정도의 누적 점수</p>
+            <p class="slide-hero-note">광고 삽입, 이미지 지연 로드, 웹폰트 교체 등으로 요소 위치가 예기치 않게 변경되는 현상</p>
+          </div>
+          <div class="slide-threshold">
+            <span class="slide-threshold-kicker">Good</span>
+            <span class="slide-threshold-value">0.1</span>
+            <span class="slide-threshold-unit">이하</span>
+          </div>
+        </div>
+
+        <p class="slide-callout slide-callout--cls">의도하지 않은 레이아웃 이동은 클릭 실수 및 이탈을 유발</p>
+
+        <div class="slide-panel cls-formula-card">
+          <h3 class="slide-panel-head">공식</h3>
+          <div class="cls-formula-body">
+            <div class="cls-formula-math">
+              <p class="cls-math-row">
+                <span class="cls-math-i">shift score</span>
+                <span class="cls-math-sym">=</span>
+                <span class="cls-math-i cls-math-i--impact">impact fraction</span>
+                <span class="cls-math-sym">×</span>
+                <span class="cls-math-i cls-math-i--distance">distance fraction</span>
+              </p>
+              <p class="cls-math-row cls-math-row--cls">
+                <span class="cls-math-i cls-math-i--cls">CLS</span>
+                <span class="cls-math-sym">=</span>
+                <span class="cls-math-sum"><span class="cls-math-sigma">Σ</span> shift score</span>
+              </p>
+            </div>
+            <ul class="cls-formula-legend">
+              <li><span class="cls-legend-swatch cls-legend-swatch--impact"></span><strong>impact fraction</strong> 흔들린 화면 비율</li>
+              <li><span class="cls-legend-swatch cls-legend-swatch--distance"></span><strong>distance fraction</strong> 밀린 거리 비율</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="slide-panel">
+          <h3 class="slide-panel-head">흔한 원인</h3>
+          <ul class="slide-point-list">
+            <li><strong>이미지 크기 미지정</strong><span>높이가 지정되지 않으면 이미지 로드 후 아래 요소 전체가 밀림</span></li>
+            <li><strong>동적 배너, 광고</strong><span>광고와 배너가 갑자기 삽입되면 주변 요소가 밀려남</span></li>
+            <li><strong>웹폰트 교체</strong><span>fallback 폰트에서 웹폰트로 교체될 때 텍스트 높이가 바뀌며 이동</span></li>
+          </ul>
+        </div>
+
+      </div>
+      <div class="split-right">
+        <div class="metric-viz cls-viz" data-cls-active="ad">
+          <div class="cls-viz-head">
+            <p class="metric-viz-heading">CLS 누적 점수가 0.1 기준을 넘는지 비교한다</p>
+            <div class="cls-scenario-tabs" role="tablist">
+              <button type="button" class="cls-scenario-tab active" role="tab" aria-selected="true" data-cls-tab="ad">광고</button>
+              <button type="button" class="cls-scenario-tab" role="tab" aria-selected="false" data-cls-tab="font">웹폰트</button>
+            </div>
+          </div>
+          <div class="cls-score-board">
+            <p class="cls-score-ref">0.1 기준 (Good)</p>
+            <div class="cls-score-grid">
+              <div class="cls-score-cell poor">
+                <span class="cls-score-cell-label" data-label-ad="공간 미확보" data-label-font="fallback 불일치">공간 미확보</span>
+                <span class="cls-score-value"><span class="cls-counter cls-counter--poor">0.00</span></span>
+                <span class="cls-score-grade poor">Poor</span>
+              </div>
+              <div class="cls-score-cell good">
+                <span class="cls-score-cell-label" data-label-ad="공간 확보" data-label-font="크기 예약">공간 확보</span>
+                <span class="cls-score-value"><span class="cls-counter cls-counter--good">0.00</span></span>
+                <span class="cls-score-grade good">Good</span>
+              </div>
+            </div>
+          </div>
+          <div class="cls-scenario cls-scenario--ad active" data-cls-scenario="ad">
+            <div class="metric-preview-grid">
+            <div class="metric-preview-col metric-preview-col--poor cls-col-before">
+              <span class="metric-preview-label" data-label-ad="공간 미확보" data-label-font="fallback 불일치">공간 미확보</span>
+              <div class="metric-preview-browser">
+                <div class="metric-preview-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
+                <div class="metric-preview-viewport">
+                  <div class="cls-page">
+                    <div class="cls-chrome" aria-hidden="true">
+                      <span class="cls-skel cls-skel-logo"></span>
+                      <div class="cls-skel-nav"><span></span><span></span><span></span><span></span></div>
+                    </div>
+                    <div class="cls-ad cls-ad-leader cls-ad-drop" aria-hidden="true">
+                      <span class="cls-ad-badge">Ad</span>
+                      <span class="cls-ad-brand"></span>
+                      <span class="cls-ad-line"></span>
+                      <span class="cls-ad-btn"></span>
+                    </div>
+                    <div class="cls-main">
+                      <div class="cls-main-col">
+                        <span class="cls-skel cls-skel-crumb"></span>
+                        <span class="cls-skel cls-skel-h1"></span>
+                        <span class="cls-skel cls-skel-h1 cls-skel-h1--sm"></span>
+                        <span class="cls-skel cls-skel-meta"></span>
+                        <span class="cls-skel cls-skel-img"></span>
+                        <span class="cls-skel cls-skel-line"></span>
+                        <span class="cls-skel cls-skel-line cls-skel-line--short"></span>
+                      </div>
+                      <aside class="cls-side-col" aria-hidden="true">
+                        <div class="cls-ad cls-ad-sky cls-ad-sky-drop">
+                          <span class="cls-ad-badge">Ad</span>
+                          <span class="cls-ad-visual"></span>
+                        </div>
+                      </aside>
+                    </div>
+                  </div>
+                  <div class="cls-shift-overlay cls-shift-overlay--poor cls-shift-overlay--ad" aria-hidden="true">
+                    <div class="cls-shift-step cls-shift-step--leader">
+                      <span class="cls-shift-ghost cls-shift-ghost--from"></span>
+                      <span class="cls-shift-ghost cls-shift-ghost--to"></span>
+                      <span class="cls-shift-impact"></span>
+                      <span class="cls-shift-distance"></span>
+                    </div>
+                    <div class="cls-shift-step cls-shift-step--sky">
+                      <span class="cls-shift-impact"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <span class="metric-preview-score poor">CLS 0.32 / Poor</span>
+            </div>
+            <div class="metric-preview-col metric-preview-col--good cls-col-after">
+              <span class="metric-preview-label" data-label-ad="공간 확보" data-label-font="크기 예약">공간 확보</span>
+              <div class="metric-preview-browser">
+                <div class="metric-preview-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
+                <div class="metric-preview-viewport">
+                  <div class="cls-page">
+                    <div class="cls-chrome" aria-hidden="true">
+                      <span class="cls-skel cls-skel-logo"></span>
+                      <div class="cls-skel-nav"><span></span><span></span><span></span><span></span></div>
+                    </div>
+                    <div class="cls-ad-slot" aria-hidden="true">
+                      <div class="cls-ad cls-ad-leader cls-ad-in-slot">
+                        <span class="cls-ad-badge">Ad</span>
+                        <span class="cls-ad-brand"></span>
+                        <span class="cls-ad-line"></span>
+                        <span class="cls-ad-btn"></span>
+                      </div>
+                    </div>
+                    <div class="cls-main">
+                      <div class="cls-main-col">
+                        <span class="cls-skel cls-skel-crumb"></span>
+                        <span class="cls-skel cls-skel-h1"></span>
+                        <span class="cls-skel cls-skel-h1 cls-skel-h1--sm"></span>
+                        <span class="cls-skel cls-skel-meta"></span>
+                        <span class="cls-skel cls-skel-img"></span>
+                        <span class="cls-skel cls-skel-line"></span>
+                        <span class="cls-skel cls-skel-line cls-skel-line--short"></span>
+                      </div>
+                      <aside class="cls-side-col" aria-hidden="true">
+                        <div class="cls-ad-slot cls-ad-slot--sky">
+                          <div class="cls-ad cls-ad-sky cls-ad-sky-in-slot">
+                            <span class="cls-ad-badge">Ad</span>
+                            <span class="cls-ad-visual"></span>
+                          </div>
+                        </div>
+                      </aside>
+                    </div>
+                  </div>
+                  <div class="cls-shift-overlay cls-shift-overlay--good cls-shift-overlay--ad" aria-hidden="true">
+                    <span class="cls-shift-slot-border cls-shift-slot-border--main"></span>
+                    <span class="cls-shift-slot-border cls-shift-slot-border--sky"></span>
+                  </div>
+                </div>
+              </div>
+              <span class="metric-preview-score good">CLS 0 / Good</span>
+            </div>
+          </div>
+          </div>
+          <div class="cls-scenario cls-scenario--font" data-cls-scenario="font" hidden>
+            <div class="metric-preview-grid">
+              <div class="metric-preview-col metric-preview-col--poor cls-font-col-before">
+                <span class="metric-preview-label">fallback 불일치</span>
+                <div class="metric-preview-browser">
+                  <div class="metric-preview-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="metric-preview-viewport">
+                    <div class="cls-page">
+                      <div class="cls-chrome" aria-hidden="true">
+                        <span class="cls-skel cls-skel-logo"></span>
+                        <div class="cls-skel-nav"><span></span><span></span><span></span><span></span></div>
+                      </div>
+                      <div class="cls-ad-slot cls-ad-slot--quiet" aria-hidden="true"></div>
+                      <div class="cls-main">
+                        <div class="cls-main-col">
+                          <span class="cls-skel cls-skel-crumb"></span>
+                          <div class="cls-font-head cls-font-head--bad">
+                            <span class="cls-font-title cls-font-title--fb">Performance Guide</span>
+                            <span class="cls-font-title cls-font-title--wf">Performance Guide</span>
+                          </div>
+                          <div class="cls-font-rest cls-font-rest--shift">
+                            <span class="cls-skel cls-skel-meta"></span>
+                            <span class="cls-skel cls-skel-img"></span>
+                            <span class="cls-skel cls-skel-line"></span>
+                            <span class="cls-skel cls-skel-line cls-skel-line--short"></span>
+                          </div>
+                        </div>
+                        <aside class="cls-side-col" aria-hidden="true">
+                          <div class="cls-ad-slot cls-ad-slot--sky cls-ad-slot--quiet"></div>
+                        </aside>
+                      </div>
+                    </div>
+                    <div class="cls-shift-overlay cls-shift-overlay--poor cls-shift-overlay--font" aria-hidden="true">
+                    <div class="cls-shift-step cls-shift-step--font">
+                      <span class="cls-shift-ghost cls-shift-ghost--head-from"></span>
+                      <span class="cls-shift-ghost cls-shift-ghost--head-to"></span>
+                      <span class="cls-shift-ghost cls-shift-ghost--from"></span>
+                      <span class="cls-shift-ghost cls-shift-ghost--to"></span>
+                      <span class="cls-shift-impact"></span>
+                      <span class="cls-shift-distance"></span>
+                    </div>
+                    </div>
+                  </div>
+                </div>
+                <span class="metric-preview-score poor">CLS 0.14 / Poor</span>
+              </div>
+              <div class="metric-preview-col metric-preview-col--good cls-font-col-after">
+                <span class="metric-preview-label">크기 예약</span>
+                <div class="metric-preview-browser">
+                  <div class="metric-preview-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="metric-preview-viewport">
+                    <div class="cls-page">
+                      <div class="cls-chrome" aria-hidden="true">
+                        <span class="cls-skel cls-skel-logo"></span>
+                        <div class="cls-skel-nav"><span></span><span></span><span></span><span></span></div>
+                      </div>
+                      <div class="cls-ad-slot cls-ad-slot--quiet" aria-hidden="true"></div>
+                      <div class="cls-main">
+                        <div class="cls-main-col">
+                          <span class="cls-skel cls-skel-crumb"></span>
+                          <div class="cls-font-head cls-font-head--good">
+                            <span class="cls-font-title cls-font-title--fb">Performance Guide</span>
+                            <span class="cls-font-title cls-font-title--wf">Performance Guide</span>
+                          </div>
+                          <div class="cls-font-rest">
+                            <span class="cls-skel cls-skel-meta"></span>
+                            <span class="cls-skel cls-skel-img"></span>
+                            <span class="cls-skel cls-skel-line"></span>
+                            <span class="cls-skel cls-skel-line cls-skel-line--short"></span>
+                          </div>
+                        </div>
+                        <aside class="cls-side-col" aria-hidden="true">
+                          <div class="cls-ad-slot cls-ad-slot--sky cls-ad-slot--quiet"></div>
+                        </aside>
+                      </div>
+                    </div>
+                    <div class="cls-shift-overlay cls-shift-overlay--good cls-shift-overlay--font" aria-hidden="true">
+                      <span class="cls-shift-slot-border cls-shift-slot-border--head"></span>
+                      <span class="cls-shift-slot-border cls-shift-slot-border--rest"></span>
+                    </div>
+                  </div>
+                </div>
+                <span class="metric-preview-score good">CLS 0 / Good</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 07: Lighthouse란 -->
+  <section data-index="7">
+    <span class="section-num">7</span>
+    <div class="center-layout slide-center-brief slide-center-brief--lh">
+      <div class="slide-center-inner">
+        <h2 class="slide-title slide-center-title">Lighthouse란</h2>
+        <p class="slide-tagline slide-center-tagline">Google 오픈소스 웹 품질 감사 도구</p>
+
+      <div class="lh-intro-flow">
+          <div class="lh-intro-node lh-intro-node--url">
+            <span class="lh-intro-node-label">URL</span>
+            <span class="lh-intro-node-sub">분석할 페이지 주소</span>
+          </div>
+          <div class="lh-intro-arrow" aria-hidden="true"></div>
+          <div class="lh-intro-node lh-intro-node--engine">
+            <span class="lh-intro-node-label">Lighthouse</span>
+            <span class="lh-intro-node-sub">자동 분석</span>
+          </div>
+          <div class="lh-intro-arrow" aria-hidden="true"></div>
+          <div class="lh-intro-node lh-intro-node--result">
+            <span class="lh-intro-node-label">점수 + 개선 방안</span>
+            <span class="lh-intro-node-sub">0–100점, 항목별 진단</span>
+          </div>
+        </div>
+
+        <div class="lh-cats">
+          <div class="lh-cat-item">
+            <span class="lh-cat lh-cat--perf">Performance</span>
+            <span class="lh-cat-sub">얼마나 빠른가</span>
+          </div>
+          <div class="lh-cat-item">
+            <span class="lh-cat lh-cat--a11y">Accessibility</span>
+            <span class="lh-cat-sub">모두가 쓸 수 있는가</span>
+          </div>
+          <div class="lh-cat-item">
+            <span class="lh-cat lh-cat--bp">Best Practices</span>
+            <span class="lh-cat-sub">보안과 코드 품질을 준수하는가</span>
+          </div>
+          <div class="lh-cat-item">
+            <span class="lh-cat lh-cat--seo">SEO</span>
+            <span class="lh-cat-sub">검색에 잘 노출되는가</span>
+          </div>
+          <div class="lh-cat-item">
+            <span class="lh-cat lh-cat--pwa">PWA</span>
+            <span class="lh-cat-sub">앱으로 설치할 수 있는가</span>
+          </div>
+        </div>
+
+        <div class="slide-center-cli-panel">
+          <div class="terminal-win">
+            <div class="terminal-win-bar">
+              <span class="terminal-win-dot terminal-win-dot--red"></span>
+              <span class="terminal-win-dot terminal-win-dot--yellow"></span>
+              <span class="terminal-win-dot terminal-win-dot--green"></span>
+              <span class="terminal-win-copy">Copy</span>
+            </div>
+            <pre class="terminal-win-body"><code class="terminal-code"><span class="terminal-prompt">$</span> <span class="terminal-cmd">npx lighthouse</span> <span class="terminal-url">https://example.com</span> <span class="terminal-flag">--view</span></code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 08: Lighthouse 사용법 -->
+  <section data-index="8">
+    <span class="section-num">8</span>
+    <div class="split">
+      <div class="split-left slide-brief lh-guide-brief">
+        <h2 class="slide-title">Lighthouse 사용법</h2>
+        <p class="slide-tagline">권장 설정과 점수 해석 방법</p>
+        <div class="lh-guide-panels">
+          <div class="slide-panel lh-guide-panel lh-guide-panel--compact">
+            <h3 class="slide-panel-head">주요 설정</h3>
+            <dl class="lh-kv-list lh-kv-list--compact">
+              <div class="lh-kv-row">
+                <dt>Mode</dt>
+                <dd class="lh-kv-inline">
+                  <span class="lh-kv-pick">Navigation</span>
+                  <span class="lh-kv-muted">Timespan, Snapshot</span>
+                </dd>
+              </div>
+              <div class="lh-kv-row">
+                <dt>Device</dt>
+                <dd class="lh-kv-inline">
+                  <span class="lh-kv-pick">Mobile</span>
+                  <span class="lh-kv-muted">Desktop</span>
+                </dd>
+              </div>
+              <div class="lh-kv-row lh-kv-row--cats">
+                <dt>Categories</dt>
+                <dd>
+                  <ul class="lh-cat-guide-grid">
+                    <li><span class="lh-cat-guide-name">Performance</span><span class="lh-cat-guide-desc">얼마나 빠른가</span></li>
+                    <li><span class="lh-cat-guide-name">Accessibility</span><span class="lh-cat-guide-desc">모두가 쓸 수 있는가</span></li>
+                    <li><span class="lh-cat-guide-name">Best practices</span><span class="lh-cat-guide-desc">보안과 코드 품질을 준수하는가</span></li>
+                    <li><span class="lh-cat-guide-name">SEO</span><span class="lh-cat-guide-desc">검색에 잘 노출되는가</span></li>
+                    <li><span class="lh-cat-guide-name">PWA</span><span class="lh-cat-guide-desc">앱으로 설치할 수 있는가</span></li>
+                  </ul>
+                </dd>
+              </div>
+            </dl>
+          </div>
+          <div class="slide-panel lh-guide-panel lh-guide-panel--scores">
+            <h3 class="slide-panel-head">점수 기준</h3>
+            <ul class="lh-score-bands">
+              <li class="lh-score-band lh-score-band--poor">
+                <span class="lh-score-band-swatch" aria-hidden="true"></span>
+                <span class="lh-score-band-range">0 – 49</span>
+                <span class="lh-score-band-label">즉시 개선 필요</span>
+              </li>
+              <li class="lh-score-band lh-score-band--avg">
+                <span class="lh-score-band-swatch" aria-hidden="true"></span>
+                <span class="lh-score-band-range">50 – 89</span>
+                <span class="lh-score-band-label">개선 여지 있음</span>
+              </li>
+              <li class="lh-score-band lh-score-band--good">
+                <span class="lh-score-band-swatch" aria-hidden="true"></span>
+                <span class="lh-score-band-range">90 – 100</span>
+                <span class="lh-score-band-label">양호</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="split-right">
+        <div class="lh-dock-mount" data-lh-variant="guide"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 09: DevTools Performance 탭 -->
+  <section data-index="9">
+    <span class="section-num">9</span>
+    <div class="split">
+      <div class="split-left slide-brief perf-guide-brief">
+        <h2 class="slide-title">DevTools Performance 탭</h2>
+        <p class="slide-tagline">Lighthouse 진단과 Performance 프로파일링의 역할 구분</p>
+        <div class="slide-panel perf-compare-panel">
+          <ul class="slide-point-list">
+            <li><strong>Lighthouse</strong><span>어떤 항목이 문제인지 알려주는 진단 도구</span></li>
+            <li><strong>Performance</strong><span>언제, 어느 함수에서 막히는지 타임라인 추적</span></li>
+          </ul>
+        </div>
+        <div class="perf-guide-panels">
+          <div class="slide-panel perf-guide-panel">
+            <h3 class="slide-panel-head">화면에서 봐야 할 것</h3>
+            <ul class="perf-frame-bands">
+              <li class="lh-score-band lh-score-band--good">
+                <span class="lh-score-band-swatch" aria-hidden="true"></span>
+                <span class="lh-score-band-range">16.7ms 이내</span>
+                <span class="lh-score-band-label">정상 프레임</span>
+              </li>
+              <li class="lh-score-band lh-score-band--avg">
+                <span class="lh-score-band-swatch" aria-hidden="true"></span>
+                <span class="lh-score-band-range">Partial</span>
+                <span class="lh-score-band-label">부분 갱신 프레임</span>
+              </li>
+              <li class="lh-score-band lh-score-band--poor">
+                <span class="lh-score-band-swatch" aria-hidden="true"></span>
+                <span class="lh-score-band-range">Dropped</span>
+                <span class="lh-score-band-label">드랍 프레임</span>
+              </li>
+            </ul>
+          </div>
+          <div class="slide-panel perf-guide-panel perf-guide-panel--flow">
+            <h3 class="slide-panel-head">병목 찾는 순서</h3>
+            <ol class="perf-flow-list">
+              <li class="perf-flow-item">
+                <span class="perf-flow-from">Main 트랙 빨간 삼각형</span>
+                <div class="perf-flow-result">
+                  <span class="perf-flow-arrow" aria-hidden="true">→</span>
+                  <span class="perf-flow-to">Long Task</span>
+                </div>
+              </li>
+              <li class="perf-flow-item">
+                <span class="perf-flow-from">호출 스택 최하단</span>
+                <div class="perf-flow-result">
+                  <span class="perf-flow-arrow" aria-hidden="true">→</span>
+                  <span class="perf-flow-to">실제 병목 함수</span>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <div class="split-right">
+        <div class="perf-panel-mount"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ SECTION 2: Tree Shaking ═══════════════════════════ -->
+
+  <!-- SLIDE 10: Bundle 과 Dead Code -->
+  <section data-index="10">
+    <span class="section-num">10</span>
+    <div class="split">
+      <div class="split-left slide-brief">
+        <h2 class="slide-title">Bundle 과 Dead Code</h2>
+        <p class="slide-tagline">실행되지 않는 코드까지 함께 보내는 것은 낭비</p>
+        <div class="slide-panel">
+          <ul class="slide-point-list">
+            <li><strong>Bundle</strong><span>브라우저가 실제로 다운로드하는 최종 JS 파일</span></li>
+            <li><strong>Dead Code</strong><span>다운로드 또는 파싱됐지만 실행되지 않는 코드</span></li>
+            <li><strong>대표 원인</strong><span>일부만 써도 전체 import면 사용하지 않는 export까지 번들에 포함</span></li>
+          </ul>
+        </div>
+        <div class="slide-panel slide-panel--fix">
+          <h3 class="slide-panel-head">문제 예시</h3>
+          <pre class="slide-code-block slide-code-compact"><code>import _ from 'lodash'
+
+_.debounce(onSearch, 300)</code></pre>
+        </div>
+      </div>
+      <div class="split-right split-right-bfd">
+        <div class="bfd-wrap">
+          <div class="bfd-sources">
+            <div class="bfd-file-item">
+              <img class="bfd-file-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 48'%3E%3Cpath fill='%232a3444' stroke='%234a5568' stroke-width='1.2' d='M6 2h20l10 10v34H6V2z'/%3E%3Cpath fill='%233a4556' d='M26 2v10h10'/%3E%3Crect x='10' y='22' width='20' height='10' rx='2' fill='%23f7df1e'/%3E%3Ctext x='20' y='29.5' text-anchor='middle' font-size='7' font-weight='700' font-family='system-ui,sans-serif' fill='%23323030'%3EJS%3C/text%3E%3C/svg%3E" alt="">
+              <span class="bfd-file-label">app.js</span>
+              <span class="bfd-file-size">1.2 KB</span>
+            </div>
+            <div class="bfd-file-item">
+              <img class="bfd-file-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 48'%3E%3Cpath fill='%232a3444' stroke='%234a5568' stroke-width='1.2' d='M6 2h20l10 10v34H6V2z'/%3E%3Cpath fill='%233a4556' d='M26 2v10h10'/%3E%3Crect x='10' y='22' width='20' height='10' rx='2' fill='%23f7df1e'/%3E%3Ctext x='20' y='29.5' text-anchor='middle' font-size='7' font-weight='700' font-family='system-ui,sans-serif' fill='%23323030'%3EJS%3C/text%3E%3C/svg%3E" alt="">
+              <span class="bfd-file-label">utils.js</span>
+              <span class="bfd-file-size">0.4 KB</span>
+            </div>
+            <div class="bfd-file-item bfd-file-item--big">
+              <img class="bfd-file-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 48'%3E%3Cpath fill='%233a1f1f' stroke='%23ff4e42' stroke-width='1.2' d='M6 2h20l10 10v34H6V2z'/%3E%3Cpath fill='%234a2828' d='M26 2v10h10'/%3E%3Crect x='10' y='22' width='20' height='10' rx='2' fill='%23ff4e42'/%3E%3Ctext x='20' y='29.5' text-anchor='middle' font-size='6.5' font-weight='700' font-family='system-ui,sans-serif' fill='%23fff'%3Enpm%3C/text%3E%3C/svg%3E" alt="">
+              <span class="bfd-file-label bfd-file-label--big">lodash</span>
+              <span class="bfd-file-size">531 KB</span>
+            </div>
+            <div class="bfd-file-item">
+              <img class="bfd-file-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 48'%3E%3Cpath fill='%232a3444' stroke='%234a5568' stroke-width='1.2' d='M6 2h20l10 10v34H6V2z'/%3E%3Cpath fill='%233a4556' d='M26 2v10h10'/%3E%3Crect x='10' y='22' width='20' height='10' rx='2' fill='%23f7df1e'/%3E%3Ctext x='20' y='29.5' text-anchor='middle' font-size='7' font-weight='700' font-family='system-ui,sans-serif' fill='%23323030'%3EJS%3C/text%3E%3C/svg%3E" alt="">
+              <span class="bfd-file-label">chart.js</span>
+              <span class="bfd-file-size">1.2 KB</span>
+            </div>
+          </div>
+          <div class="bfd-center">
+            <div class="bfd-arrow-v" aria-hidden="true"></div>
+            <div class="bfd-bundler">Webpack / Vite</div>
+            <div class="bfd-arrow-v" aria-hidden="true"></div>
+          </div>
+          <div class="bfd-output">
+            <div class="bfd-output-head">
+              <span class="bfd-output-label">bundle.js</span>
+              <span class="bfd-output-size">531 KB</span>
+            </div>
+            <div class="bfd-bar bfd-bar--stack">
+              <div class="bfd-seg bfd-used"><span class="bfd-seg-label">실행됨 2.8 KB</span></div>
+              <div class="bfd-seg bfd-dead"><span class="bfd-seg-label">Dead Code 528 KB</span></div>
+            </div>
+            <div class="bfd-stats">
+              <div class="bfd-stat bfd-stat--used">
+                <span class="bfd-stat-kicker">실행됨</span>
+                <strong class="bfd-stat-value">0.5%</strong>
+                <span class="bfd-stat-detail">2.8 KB</span>
+              </div>
+              <div class="bfd-stat bfd-stat--dead">
+                <span class="bfd-stat-kicker">Dead Code</span>
+                <strong class="bfd-stat-value">99.5%</strong>
+                <span class="bfd-stat-detail">528 KB</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 11: ESM이어야 Tree Shaking이 가능한 이유 -->
+  <section data-index="11">
+    <span class="section-num">11</span>
+    <div class="esm11-wrap"><div class="esm11-layout">
+      <div class="esm11-header">
+        <h2 class="slide-title">ESM 과 정적 분석</h2>
+        <p class="slide-tagline">번들러가 빌드 타임에 사용 export를 확정할 수 있어야 Tree Shaking이 가능</p>
+      </div>
+      <!-- 빌드/런타임 페이즈 타임라인 -->
+      <div class="esm11-timeline">
+        <div class="esm11-tl-track">
+          <div class="esm11-tl-node">소스코드</div>
+          <span class="esm11-tl-arrow">→</span>
+          <div class="esm11-tl-node esm11-tl-node--build">빌드 (번들러)</div>
+          <span class="esm11-tl-arrow">→</span>
+          <div class="esm11-tl-node">배포</div>
+          <span class="esm11-tl-arrow">→</span>
+          <div class="esm11-tl-node esm11-tl-node--runtime">런타임 (앱 실행)</div>
+        </div>
+      </div>
+      <!-- 비교 컬럼 -->
+      <div class="esm11-compare">
+        <div class="esm11-col esm11-cjs">
+          <div class="esm11-col-head cjs-head">lodash (CJS 패키지)</div>
+          <pre class="slide-code-block esm-flow-code"><code><span class="hl-bad">import _ from 'lodash'</span>
+_.debounce(handleSearch, 300)</code></pre>
+          <div class="esm11-col-detail esm11-col-detail--warn">
+            <span class="esm11-step-badge warn-badge">런타임에 결정</span>
+            <p class="esm11-step-desc">lodash 내부는 <strong>CJS</strong> 기반이기 때문에 <code>_</code>는 런타임 객체로 취급되어, 빌드 시에는 어떤 메서드를 쓰는지 결정되지 않음</p>
+          </div>
+          <div class="esm11-col-outcome esm11-col-outcome--bad">
+            <p class="esm11-bundler esm11-bundler--bad">
+              <svg class="esm-x-icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.28 3.22L8 6.94l3.72-3.72 1.06 1.06L9.06 8l3.72 3.72-1.06 1.06L8 9.06l-3.72 3.72-1.06-1.06L6.94 8 3.22 4.28z"/></svg>
+              사용 심볼만 확정 불가하여 전체 포함
+            </p>
+            <div class="esm11-result-compact">
+              <span class="esm11-result-size">531 KB</span>
+              <span class="esm11-result-label">lodash 전체 포함</span>
+            </div>
+          </div>
+        </div>
+        <div class="esm11-col esm11-esm">
+          <div class="esm11-col-head esm-head">lodash-es (ESM 패키지)</div>
+          <pre class="slide-code-block esm-flow-code"><code><span class="hl-good">import { debounce } from 'lodash-es'</span>
+debounce(handleSearch, 300)</code></pre>
+          <div class="esm11-col-detail esm11-col-detail--good">
+            <span class="esm11-step-badge good-badge">빌드 타임 분석</span>
+            <p class="esm11-step-desc"><code>lodash-es</code>는 <strong>ESM</strong> 기반이므로 빌드 시점에 <code>debounce</code>가 의존 그래프에 연결되고, 사용되지 않는 export는 제거 가능</p>
+          </div>
+          <div class="esm11-col-outcome esm11-col-outcome--good">
+            <p class="esm11-bundler esm11-bundler--good">
+              <svg class="esm-check-icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M13.5 2.5l-7.5 7.5-3-3-1.5 1.5 4.5 4.5 9-9z"/></svg>
+              미사용 export 제거
+            </p>
+            <div class="esm11-result-compact">
+              <span class="esm11-result-size">2.8 KB</span>
+              <span class="esm11-result-label">debounce만</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="esm11-callout esm11-formula-card">
+        <h3 class="esm11-formula-head">필요 조건</h3>
+        <div class="esm11-formula-body">
+          <div class="esm11-formula-math">
+            <p class="esm11-math-row">
+              <span class="esm11-math-i esm11-math-i--result">Tree Shaking</span>
+              <span class="esm11-math-sym">=</span>
+              <span class="esm11-math-i esm11-math-i--esm">ESM package</span>
+              <span class="esm11-math-sym">+</span>
+              <span class="esm11-math-i esm11-math-i--import">named import</span>
+              <span class="esm11-math-sym">+</span>
+              <span class="esm11-math-i esm11-math-i--bundler">bundler static analysis</span>
+            </p>
+          </div>
+          <ul class="esm11-formula-legend">
+            <li><span class="esm11-legend-swatch esm11-legend-swatch--esm"></span><strong>ESM package</strong> 빌드 타임에 분석 가능한 모듈 형식</li>
+            <li><span class="esm11-legend-swatch esm11-legend-swatch--import"></span><strong>named import</strong> 사용 심볼을 명시하는 import</li>
+            <li><span class="esm11-legend-swatch esm11-legend-swatch--bundler"></span><strong>bundler static analysis</strong> 미사용 export 제거</li>
+          </ul>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- SLIDE 12: Tree Shaking Before/After와 Minifier -->
+  <section data-index="12">
+    <span class="section-num">12</span>
+    <div class="bundle-pipeline-slide">
+      <div class="bundle-pipeline-brief slide-brief">
+        <h2 class="slide-title">번들 변환 파이프라인</h2>
+        <p class="slide-tagline">한 줄 코드 변경이 번들 결과에 미치는 나비효과</p>
+        <div class="slide-panel slide-panel--fix">
+          <h3 class="slide-panel-head">Import diff</h3>
+          <div class="pr-diff pr-diff--split" role="group" aria-label="Import 변경 diff">
+            <div class="pr-diff-row">
+              <div class="pr-diff-line pr-diff-line--del">
+                <span class="pr-diff-gutter" aria-hidden="true">−</span>
+                <code class="pr-diff-code"><span class="pr-diff-kw">import</span> _ <span class="pr-diff-kw">from</span> <span class="pr-diff-str">'lodash'</span></code>
+              </div>
+              <div class="pr-diff-line pr-diff-line--add">
+                <span class="pr-diff-gutter" aria-hidden="true">+</span>
+                <code class="pr-diff-code"><span class="pr-diff-kw">import</span> { <span class="pr-diff-fn">debounce</span> } <span class="pr-diff-kw">from</span> <span class="pr-diff-str">'lodash-es'</span></code>
+              </div>
+            </div>
+            <div class="pr-diff-row">
+              <div class="pr-diff-line pr-diff-line--del">
+                <span class="pr-diff-gutter" aria-hidden="true">−</span>
+                <code class="pr-diff-code">_.<span class="pr-diff-fn">debounce</span>(handleSearch, 300)</code>
+              </div>
+              <div class="pr-diff-line pr-diff-line--add">
+                <span class="pr-diff-gutter" aria-hidden="true">+</span>
+                <code class="pr-diff-code"><span class="pr-diff-fn">debounce</span>(handleSearch, 300)</code>
+              </div>
+            </div>
+          </div>
+          <p class="slide-desc">ESM 패키지와 named import 를 사용하여 번들러가 <code>debounce</code>만 추적하도록 함</p>
+        </div>
+      </div>
+      <div class="bp-grid">
+        <div class="bp-grid-corner"></div>
+        <div class="bp-col-head">Source</div>
+        <div class="bp-col-head">Tree Shaked</div>
+        <div class="bp-col-head bp-col-head--min">Minified</div>
+
+        <div class="bp-row-label bp-row-label--before">
+          <span class="bp-row-name">Before</span>
+          <span class="bp-row-pkg">lodash</span>
+        </div>
+        <div class="bp-cell">
+          <pre class="ba-code bp-cell-code"><code class="bp-src-before language-javascript"></code></pre>
+        </div>
+        <div class="bp-cell bp-cell--bad">
+          <div class="bp-cell-size bp-cell-size--bad"></div>
+          <pre class="ba-code bp-cell-code"><code class="bp-shake-before language-javascript"></code></pre>
+        </div>
+        <div class="bp-cell bp-cell--min bp-cell--bad">
+          <div class="bp-cell-size bp-cell-size--bad"></div>
+          <pre class="ba-code bp-cell-code"><code class="bp-min-before language-javascript"></code></pre>
+        </div>
+
+        <div class="bp-row-label bp-row-label--after">
+          <span class="bp-row-name">After</span>
+          <span class="bp-row-pkg">lodash-es</span>
+        </div>
+        <div class="bp-cell">
+          <pre class="ba-code bp-cell-code"><code class="bp-src-after language-javascript"></code></pre>
+        </div>
+        <div class="bp-cell bp-cell--good">
+          <div class="bp-cell-size bp-cell-size--good"></div>
+          <pre class="ba-code bp-cell-code"><code class="bp-shake-after language-javascript"></code></pre>
+        </div>
+        <div class="bp-cell bp-cell--min bp-cell--good">
+          <div class="bp-cell-size bp-cell-size--good"></div>
+          <pre class="ba-code bp-cell-code"><code class="bp-min-after language-javascript"></code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 13: Bundle Analyzer 사용법 -->
+  <section data-index="13">
+    <span class="section-num">13</span>
+    <div class="ba-workflow-slide">
+      <div class="ba-workflow-head">
+        <div class="ba-workflow-brief">
+          <h2 class="slide-title">Bundle Analyzer 사용법</h2>
+          <p class="slide-tagline">사각형 크기로 읽는 번들 최적화 우선순위</p>
+        </div>
+      </div>
+
+      <div class="ba-tab-header ba-workflow-tabs">
+        <button class="ba-tab-btn active" data-ba-tab="webpack">Webpack</button>
+        <button class="ba-tab-btn" data-ba-tab="vite">Vite</button>
+        <button class="ba-tab-btn" data-ba-tab="nextjs">Next.js</button>
+      </div>
+
+      <div class="ba-workflow-grid">
+        <div class="ba-workflow-col">
+          <span class="ba-workflow-col-label">터미널</span>
+          <div class="terminal-win ba-terminal-win">
+            <div class="terminal-win-bar">
+              <span class="terminal-win-dot terminal-win-dot--red"></span>
+              <span class="terminal-win-dot terminal-win-dot--yellow"></span>
+              <span class="terminal-win-dot terminal-win-dot--green"></span>
+              <span class="terminal-win-title">zsh</span>
+            </div>
+            <pre class="terminal-win-body ba-terminal-body"><code class="terminal-code"><span class="terminal-line"><span class="terminal-prompt">$</span> <span class="terminal-cmd" data-ba-install-cmd>npm install --save-dev webpack-bundle-analyzer</span></span>
+<span class="terminal-line terminal-line--muted" data-ba-install-out>added 12 packages in 2s</span>
+<span class="terminal-line"><span class="terminal-prompt">$</span> <span class="terminal-cmd" data-ba-build-cmd>npm run build</span></span>
+<span class="terminal-line terminal-line--muted" data-ba-build-out>✓ built (analyzer opened in browser)</span></code></pre>
+          </div>
+        </div>
+
+        <div class="ba-workflow-col">
+          <span class="ba-workflow-col-label">설정 파일</span>
+          <div class="ba-editor-win">
+            <div class="ba-editor-bar">
+              <span class="ba-editor-dot" aria-hidden="true"></span>
+              <span class="ba-editor-filename" data-ba-config-name>webpack.config.js</span>
+            </div>
+            <pre class="ba-editor-body"><code class="ba-config-code language-javascript" data-ba-config-code></code></pre>
+          </div>
+        </div>
+
+        <div class="ba-workflow-col ba-workflow-col--browser">
+          <span class="ba-workflow-col-label">브라우저 출력</span>
+          <div class="devtools-shell ba-browser-shell">
+            <div class="devtools-chrome">
+              <div class="chrome-dots"><span></span><span></span><span></span></div>
+              <div class="chrome-url ba-browser-url" data-ba-browser-url>webpack-bundle-analyzer @ localhost:8888</div>
+            </div>
+            <div class="devtools-panel bundle-treemap-panel">
+              <div class="treemap-compare treemap-compare-full ba-workflow-compare">
+                <div class="ba-pane ba-pane-full">
+                  <div class="ba-pane-top">
+                    <span class="compare-tag before">Before</span>
+                    <span class="ba-chunk-name">search.js</span>
+                    <span class="ba-chunk-size ba-chunk-size-before">531 KiB</span>
+                  </div>
+                  <div class="treemap-canvas treemap-before-lg"></div>
+                </div>
+                <div class="ba-pane ba-pane-full">
+                  <div class="ba-pane-top">
+                    <span class="compare-tag after">After</span>
+                    <span class="ba-chunk-name">search.js</span>
+                    <span class="ba-chunk-size ba-chunk-size-after">2.8 KiB</span>
+                  </div>
+                  <div class="treemap-canvas treemap-after-lg"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ SECTION 3: Code Splitting ═══════════════════════════ -->
+
+  <!-- SLIDE 14: Code Splitting -->
+  <section data-index="14">
+    <span class="section-num">14</span>
+    <div class="split">
+      <div class="split-left slide-brief cs-slide-brief">
+        <h2 class="slide-title">Code Splitting</h2>
+        <p class="slide-tagline">지금 필요 없는 코드는 나중에 로드</p>
+        <div class="slide-panel">
+          <ul class="slide-point-list">
+            <li><strong>문제</strong><span>/dashboard 첫 방문인데 static import면 HeavyChart까지 bundle.js 2.1MB 초기 로드</span></li>
+            <li><strong>해결</strong><span>import()와 lazy로 청크 분리, Suspense로 로딩 UI</span></li>
+          </ul>
+        </div>
+        <div class="src-compare">
+          <div class="code-block before">
+            <span class="label">Before</span>
+            <pre><code class="language-javascript code-split-before"></code></pre>
+          </div>
+          <div class="code-block after">
+            <span class="label">After</span>
+            <pre><code class="language-javascript code-split-after"></code></pre>
+          </div>
+        </div>
+        <div class="slide-panel cs-result-panel">
+          <ul class="slide-point-list">
+            <li><strong>FCP</strong><span>4.2s → 0.6s (약 7배)</span></li>
+            <li><strong>Unused</strong><span>70% → 15%</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="split-right">
+        <div class="csv-viz" id="code-split-viz">
+          <div class="csv-toolbar">
+            <div class="csv-visit-toggle" role="tablist" aria-label="방문 유형">
+              <button type="button" class="csv-visit-btn active" data-visit="first" role="tab" aria-selected="true">첫 방문</button>
+              <button type="button" class="csv-visit-btn" data-visit="return" role="tab" aria-selected="false">재방문</button>
+            </div>
+            <div class="csv-fcp-readout" aria-live="polite">
+              <span class="csv-fcp-label">FCP</span>
+              <span class="csv-fcp-before">-</span>
+              <span class="csv-fcp-arrow" aria-hidden="true">→</span>
+              <span class="csv-fcp-after">-</span>
+            </div>
+          </div>
+
+          <div class="csv-waterfall">
+            <div class="csv-row csv-row-before">
+              <span class="csv-row-tag before">Before</span>
+              <div class="csv-track-wrap">
+                <div class="csv-track">
+                  <button type="button" class="csv-bar csv-bar-bad" data-bar="before-bundle" data-file="bundle.js" aria-label="bundle.js 코드 보기">
+                    <span class="csv-bar-text">
+                      <span class="csv-bar-name">bundle.js</span>
+                      <span class="csv-bar-meta" data-bar-meta="before-bundle">2.1 MB</span>
+                    </span>
+                  </button>
+                </div>
+                <div class="csv-fcp-marker" data-fcp="before"><span>FCP</span></div>
+              </div>
+            </div>
+            <div class="csv-row csv-row-after">
+              <span class="csv-row-tag after">After</span>
+              <div class="csv-track-wrap">
+                <div class="csv-track">
+                  <button type="button" class="csv-bar csv-bar-good" data-bar="after-main" data-file="main.js" aria-label="main.js 코드 보기">
+                    <span class="csv-bar-text">
+                      <span class="csv-bar-name">main.js</span>
+                      <span class="csv-bar-meta" data-bar-meta="after-main">300 KB</span>
+                    </span>
+                  </button>
+                  <button type="button" class="csv-bar csv-bar-chunk" data-bar="after-chunk" data-file="chunk.HeavyChart.js" aria-label="chunk.HeavyChart.js 코드 보기">
+                    <span class="csv-bar-text">
+                      <span class="csv-bar-name">chunk.HeavyChart.js</span>
+                      <span class="csv-bar-meta" data-bar-meta="after-chunk">218 KB</span>
+                    </span>
+                  </button>
+                </div>
+                <div class="csv-fcp-marker" data-fcp="after"><span>FCP</span></div>
+              </div>
+            </div>
+            <div class="csv-playhead" aria-hidden="true"></div>
+            <div class="csv-axis" aria-hidden="true">
+              <span class="csv-axis-gutter" aria-hidden="true"></span>
+              <div class="csv-axis-ticks">
+                <span>0s</span><span>1s</span><span>2s</span><span>3s</span><span>4s</span><span>5s</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="csv-source-split">
+            <div class="csv-source-panel csv-source-panel--before" data-side="before">
+              <div class="csv-source-head">
+                <span class="csv-source-side-label before">Before</span>
+                <span class="csv-source-file-label">bundle.js</span>
+              </div>
+              <pre class="csv-source-code"><code class="language-javascript csv-source-body-before"></code></pre>
+            </div>
+            <div class="csv-source-panel csv-source-panel--after" data-side="after" data-color="green">
+              <div class="csv-source-head">
+                <span class="csv-source-side-label after">After</span>
+                <div class="csv-source-tabs" role="tablist" aria-label="After 청크">
+                  <button type="button" class="csv-source-tab active" data-file="main.js" data-side="after" role="tab" aria-selected="true">main.js</button>
+                  <button type="button" class="csv-source-tab" data-file="chunk.HeavyChart.js" data-side="after" role="tab" aria-selected="false">chunk.HeavyChart.js</button>
+                </div>
+              </div>
+              <pre class="csv-source-code"><code class="language-javascript csv-source-body-after"></code></pre>
+            </div>
+          </div>
+
+          <div class="csv-screens">
+            <div class="csv-screen csv-screen-before">
+              <div class="csv-screen-head">
+                <span class="csv-screen-label">Before</span>
+                <span class="csv-screen-badge" data-screen-badge="before">대기 중</span>
+              </div>
+              <div class="csv-browser">
+                <div class="devtools-chrome csv-browser-chrome">
+                  <div class="chrome-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="chrome-url">app.example.com/dashboard</div>
+                </div>
+                <div class="csv-browser-viewport">
+                  <div class="csv-dash-blank">로딩 중…</div>
+                  <div class="csv-dash-page">
+                    <header class="csv-dash-top">
+                      <span class="csv-dash-logo" aria-hidden="true"></span>
+                      <span class="csv-dash-title">Dashboard</span>
+                      <span class="csv-dash-avatar" aria-hidden="true"></span>
+                    </header>
+                    <div class="csv-dash-body">
+                      <aside class="csv-dash-side" aria-hidden="true">
+                        <span class="csv-dash-nav csv-dash-nav--on">Overview</span>
+                        <span class="csv-dash-nav">Analytics</span>
+                        <span class="csv-dash-nav">Reports</span>
+                      </aside>
+                      <main class="csv-dash-main">
+                        <div class="csv-dash-kpis" aria-hidden="true">
+                          <div class="csv-dash-kpi"><span class="csv-dash-kpi-val">12.4k</span><span class="csv-dash-kpi-lbl">Users</span></div>
+                          <div class="csv-dash-kpi"><span class="csv-dash-kpi-val">$48k</span><span class="csv-dash-kpi-lbl">Revenue</span></div>
+                          <div class="csv-dash-kpi"><span class="csv-dash-kpi-val">3.2%</span><span class="csv-dash-kpi-lbl">Conv.</span></div>
+                        </div>
+                        <div class="csv-dash-chart-zone">
+                          <div class="csv-dash-chart-head">
+                            <span>Monthly revenue</span>
+                            <span class="csv-dash-chart-tag">HeavyChart</span>
+                          </div>
+                          <div class="csv-dash-chart" data-dash-chart>
+                            <div class="csv-dash-chart-skeleton" aria-hidden="true">
+                              <span class="csv-dash-spinner"></span>
+                              <span>Loading chart…</span>
+                            </div>
+                            <svg class="csv-dash-chart-svg" viewBox="0 0 120 44" aria-hidden="true">
+                              <line x1="8" y1="36" x2="112" y2="36" stroke="#e4e4e7" stroke-width="1"/>
+                              <rect x="14" y="22" width="10" height="14" rx="2" fill="#93c5fd"/>
+                              <rect x="30" y="16" width="10" height="20" rx="2" fill="#60a5fa"/>
+                              <rect x="46" y="10" width="10" height="26" rx="2" fill="#3b82f6"/>
+                              <rect x="62" y="18" width="10" height="18" rx="2" fill="#60a5fa"/>
+                              <rect x="78" y="8" width="10" height="28" rx="2" fill="#2563eb"/>
+                              <rect x="94" y="14" width="10" height="22" rx="2" fill="#3b82f6"/>
+                              <polyline points="14,24 30,18 46,12 62,20 78,10 94,16" fill="none" stroke="#1d4ed8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                          </div>
+                        </div>
+                      </main>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="csv-screen csv-screen-after">
+              <div class="csv-screen-head">
+                <span class="csv-screen-label">After</span>
+                <span class="csv-screen-badge" data-screen-badge="after">대기 중</span>
+              </div>
+              <div class="csv-browser">
+                <div class="devtools-chrome csv-browser-chrome">
+                  <div class="chrome-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="chrome-url">app.example.com/dashboard</div>
+                </div>
+                <div class="csv-browser-viewport">
+                  <div class="csv-dash-blank">로딩 중…</div>
+                  <div class="csv-dash-page">
+                    <header class="csv-dash-top">
+                      <span class="csv-dash-logo" aria-hidden="true"></span>
+                      <span class="csv-dash-title">Dashboard</span>
+                      <span class="csv-dash-avatar" aria-hidden="true"></span>
+                    </header>
+                    <div class="csv-dash-body">
+                      <aside class="csv-dash-side" aria-hidden="true">
+                        <span class="csv-dash-nav csv-dash-nav--on">Overview</span>
+                        <span class="csv-dash-nav">Analytics</span>
+                        <span class="csv-dash-nav">Reports</span>
+                      </aside>
+                      <main class="csv-dash-main">
+                        <div class="csv-dash-kpis" aria-hidden="true">
+                          <div class="csv-dash-kpi"><span class="csv-dash-kpi-val">12.4k</span><span class="csv-dash-kpi-lbl">Users</span></div>
+                          <div class="csv-dash-kpi"><span class="csv-dash-kpi-val">$48k</span><span class="csv-dash-kpi-lbl">Revenue</span></div>
+                          <div class="csv-dash-kpi"><span class="csv-dash-kpi-val">3.2%</span><span class="csv-dash-kpi-lbl">Conv.</span></div>
+                        </div>
+                        <div class="csv-dash-chart-zone">
+                          <div class="csv-dash-chart-head">
+                            <span>Monthly revenue</span>
+                            <span class="csv-dash-chart-tag">HeavyChart</span>
+                          </div>
+                          <div class="csv-dash-chart" data-dash-chart>
+                            <div class="csv-dash-chart-skeleton" aria-hidden="true">
+                              <span class="csv-dash-spinner"></span>
+                              <span>Loading chart…</span>
+                            </div>
+                            <svg class="csv-dash-chart-svg" viewBox="0 0 120 44" aria-hidden="true">
+                              <line x1="8" y1="36" x2="112" y2="36" stroke="#e4e4e7" stroke-width="1"/>
+                              <rect x="14" y="22" width="10" height="14" rx="2" fill="#93c5fd"/>
+                              <rect x="30" y="16" width="10" height="20" rx="2" fill="#60a5fa"/>
+                              <rect x="46" y="10" width="10" height="26" rx="2" fill="#3b82f6"/>
+                              <rect x="62" y="18" width="10" height="18" rx="2" fill="#60a5fa"/>
+                              <rect x="78" y="8" width="10" height="28" rx="2" fill="#2563eb"/>
+                              <rect x="94" y="14" width="10" height="22" rx="2" fill="#3b82f6"/>
+                              <polyline points="14,24 30,18 46,12 62,20 78,10 94,16" fill="none" stroke="#1d4ed8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                          </div>
+                        </div>
+                      </main>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ SECTION 4: Reflow / Repaint ═══════════════════════════ -->
+
+  <!-- SLIDE 15: LCP 리소스 최적화 -->
+  <section data-index="15">
+    <span class="section-num">15</span>
+    <div class="split">
+      <div class="split-left slide-brief">
+        <h2 class="slide-title">LCP 리소스 최적화</h2>
+        <p class="slide-tagline">히어로 이미지를 브라우저가 가장 먼저 로드</p>
+        <div class="slide-panel">
+          <h3 class="slide-panel-head">기본 동작의 문제</h3>
+          <ul class="slide-point-list">
+            <li><strong>늦은 이미지 발견</strong><span>HTML 파싱 중 img를 만나야 요청 시작</span></li>
+            <li><strong>렌더 블로킹</strong><span>CSS와 JS 이후에야 LCP 이미지 발견</span></li>
+          </ul>
+        </div>
+        <div class="slide-panel slide-panel--fix">
+          <h3 class="slide-panel-head">해결</h3>
+          <ul class="slide-point-list">
+            <li><strong>&lt;link rel="preload"&gt;</strong><span>파싱 직후 이미지 요청 예약</span></li>
+            <li><strong>fetchpriority="high"</strong><span>우선순위 큐에서 최상위로</span></li>
+          </ul>
+        </div>
+        <div class="slide-code-stack lov-left-code">
+          <pre><code class="language-html lov-code-body"></code></pre>
+        </div>
+      </div>
+      <div class="split-right">
+        <div class="lov-viz" id="lcp-opt-viz">
+          <div class="lov-toolbar">
+            <p class="metric-viz-heading">리소스 발견 순서 (네트워크 워터폴)</p>
+            <div class="lov-fcp-readout" aria-live="polite">
+              <span class="lov-fcp-label">LCP</span>
+              <span class="lov-fcp-before">-</span>
+              <span class="lov-fcp-arrow" aria-hidden="true">→</span>
+              <span class="lov-fcp-after">-</span>
+            </div>
+            <button type="button" class="lov-replay-btn" aria-label="다시 재생">↻</button>
+          </div>
+          <div class="lov-waterfall">
+            <div class="lov-row lov-row-before">
+              <span class="lov-row-tag before">Before</span>
+              <div class="lov-track-wrap">
+                <div class="lov-lanes">
+                  <div class="lov-lane"><div class="lov-bar lov-bar-html" data-lov="before-html"><span>HTML</span></div></div>
+                  <div class="lov-lane"><div class="lov-bar lov-bar-css" data-lov="before-css"><span>CSS / JS</span></div></div>
+                  <div class="lov-lane"><div class="lov-bar lov-bar-hero poor" data-lov="before-hero"><span>Hero IMG</span></div></div>
+                </div>
+                <div class="lov-fcp-marker" data-lov-fcp="before" style="left:87.5%"><span>LCP</span></div>
+              </div>
+            </div>
+            <div class="lov-row lov-row-after">
+              <span class="lov-row-tag after">After</span>
+              <div class="lov-track-wrap">
+                <div class="lov-lanes">
+                  <div class="lov-lane"><div class="lov-bar lov-bar-html" data-lov="after-html"><span>HTML + preload</span></div></div>
+                  <div class="lov-lane"><div class="lov-bar lov-bar-hero good" data-lov="after-hero"><span>Hero IMG</span></div></div>
+                  <div class="lov-lane"><div class="lov-bar lov-bar-css" data-lov="after-css"><span>CSS / JS</span></div></div>
+                </div>
+                <div class="lov-fcp-marker" data-lov-fcp="after" style="left:30%"><span>LCP</span></div>
+              </div>
+            </div>
+            <div class="lov-playhead" aria-hidden="true"></div>
+            <div class="lov-axis" aria-hidden="true">
+              <span class="lov-axis-gutter"></span>
+              <div class="lov-axis-ticks"></div>
+            </div>
+          </div>
+          <div class="lov-screens">
+            <div class="lov-screen lov-screen-before">
+              <div class="lov-screen-head">
+                <span class="lov-screen-label">Before</span>
+                <span class="lov-screen-badge" data-lov-badge="before">대기 중</span>
+              </div>
+              <div class="lov-browser">
+                <div class="devtools-chrome lov-browser-chrome">
+                  <div class="chrome-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="chrome-url">shop.example.com</div>
+                </div>
+                <div class="lov-browser-viewport">
+                  <div class="lov-page lov-shop-mini">
+                    <header class="lov-shop-top" aria-hidden="true">
+                      <span class="lov-shop-mark"></span>
+                      <span class="lov-shop-search"></span>
+                    </header>
+                    <div class="lov-hero-banner lcp-shop-banner" data-lov-hero>
+                      <span class="lcp-img-paint lcp-img-paint--hero lov-hero-paint" aria-hidden="true"></span>
+                      <span class="lcp-shop-chip lcp-shop-chip--hero lov-hero-chip">50% off</span>
+                      <span class="lov-lcp-badge lcp-preview-badge">LCP</span>
+                    </div>
+                    <div class="lov-product-row" aria-hidden="true">
+                      <article class="lov-product-card">
+                        <span class="lov-product-thumb"></span>
+                        <span class="lov-product-line"></span>
+                      </article>
+                      <article class="lov-product-card">
+                        <span class="lov-product-thumb lov-product-thumb--alt"></span>
+                        <span class="lov-product-line lov-product-line--short"></span>
+                      </article>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="lov-screen lov-screen-after">
+              <div class="lov-screen-head">
+                <span class="lov-screen-label">After</span>
+                <span class="lov-screen-badge" data-lov-badge="after">대기 중</span>
+              </div>
+              <div class="lov-browser">
+                <div class="devtools-chrome lov-browser-chrome">
+                  <div class="chrome-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="chrome-url">shop.example.com</div>
+                </div>
+                <div class="lov-browser-viewport">
+                  <div class="lov-page lov-shop-mini">
+                    <header class="lov-shop-top" aria-hidden="true">
+                      <span class="lov-shop-mark"></span>
+                      <span class="lov-shop-search"></span>
+                    </header>
+                    <div class="lov-hero-banner lcp-shop-banner" data-lov-hero>
+                      <span class="lcp-img-paint lcp-img-paint--hero lov-hero-paint" aria-hidden="true"></span>
+                      <span class="lcp-shop-chip lcp-shop-chip--hero lov-hero-chip">50% off</span>
+                      <span class="lov-lcp-badge lcp-preview-badge">LCP</span>
+                    </div>
+                    <div class="lov-product-row" aria-hidden="true">
+                      <article class="lov-product-card">
+                        <span class="lov-product-thumb"></span>
+                        <span class="lov-product-line"></span>
+                      </article>
+                      <article class="lov-product-card">
+                        <span class="lov-product-thumb lov-product-thumb--alt"></span>
+                        <span class="lov-product-line lov-product-line--short"></span>
+                      </article>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 16: 브라우저 렌더링 파이프라인 -->
+  <section data-index="16">
+    <span class="section-num">16</span>
+    <div class="split">
+      <div class="split-left slide-brief">
+        <h2 class="slide-title">브라우저 렌더링 파이프라인</h2>
+        <p class="slide-tagline">렌더링은 JS → Style → Layout → Paint → Composite 순서</p>
+        <div class="slide-panel">
+          <ul class="slide-point-list">
+            <li><strong>Layout (Reflow)</strong><span>크기 및 위치 계산 (높은 비용)</span></li>
+            <li><strong>Paint (Repaint)</strong><span>픽셀 그리기</span></li>
+            <li><strong>Composite</strong><span><code>transform</code> 및 <code>opacity</code> 는 GPU만 사용</span></li>
+          </ul>
+        </div>
+        <p class="slide-callout">왼쪽 단계 → 오른쪽 속성 매핑을 한 화면에서 확인</p>
+      </div>
+      <div class="split-right">
+        <div class="pipeline-viz viz-panel" id="pipeline-viz">
+          <p class="metric-viz-heading">렌더링 파이프라인 (단계별 트리거 속성)</p>
+          <div class="pipe-grid">
+            <div class="pipe-grid-pair">
+              <div class="pfc-stage pfc-js">
+                <span class="pfc-num">1</span>
+                <span class="pfc-name">JavaScript</span>
+                <span class="pfc-cost">트리거</span>
+              </div>
+              <div class="pipe-grid-props">
+                <span class="pipe-prop neutral-prop">DOM 조작</span>
+                <span class="pipe-prop neutral-prop">이벤트 핸들러</span>
+                <span class="pipe-prop neutral-prop">style 변경</span>
+              </div>
+            </div>
+            <div class="pipe-grid-arrow" aria-hidden="true"></div>
+
+            <div class="pipe-grid-pair">
+              <div class="pfc-stage pfc-style">
+                <span class="pfc-num">2</span>
+                <span class="pfc-name">Style</span>
+                <span class="pfc-cost">CSSOM / CSS 매칭</span>
+              </div>
+              <div class="pipe-grid-props">
+                <span class="pipe-prop neutral-prop">CSSOM</span>
+                <span class="pipe-prop neutral-prop">규칙 매칭</span>
+                <span class="pipe-prop neutral-prop">computed style</span>
+                <span class="pipe-prop neutral-prop">상속과 캐스케이드</span>
+              </div>
+            </div>
+            <div class="pipe-grid-arrow" aria-hidden="true"></div>
+
+            <div class="pipe-grid-pair">
+              <div class="pfc-stage pfc-layout pfc-hot">
+                <span class="pfc-num">3</span>
+                <span class="pfc-name">Layout</span>
+                <span class="pfc-cost">Reflow (비싼 비용)</span>
+              </div>
+              <div class="pipe-grid-props">
+                <span class="pipe-prop bad-prop">width</span>
+                <span class="pipe-prop bad-prop">height</span>
+                <span class="pipe-prop bad-prop">top / left</span>
+                <span class="pipe-prop bad-prop">margin</span>
+                <span class="pipe-prop bad-prop">padding</span>
+              </div>
+            </div>
+            <div class="pipe-grid-arrow" aria-hidden="true"></div>
+
+            <div class="pipe-grid-pair">
+              <div class="pfc-stage pfc-paint">
+                <span class="pfc-num">4</span>
+                <span class="pfc-name">Paint</span>
+                <span class="pfc-cost">Repaint</span>
+              </div>
+              <div class="pipe-grid-props">
+                <span class="pipe-prop warn-prop">color</span>
+                <span class="pipe-prop warn-prop">background</span>
+                <span class="pipe-prop warn-prop">box-shadow</span>
+                <span class="pipe-prop warn-prop">border-color</span>
+              </div>
+            </div>
+            <div class="pipe-grid-arrow" aria-hidden="true"></div>
+
+            <div class="pipe-grid-pair">
+              <div class="pfc-stage pfc-comp pfc-cool">
+                <span class="pfc-num">5</span>
+                <span class="pfc-name">Composite</span>
+                <span class="pfc-cost">GPU (저렴한 비용)</span>
+              </div>
+              <div class="pipe-grid-props">
+                <span class="pipe-prop good-prop">transform</span>
+                <span class="pipe-prop good-prop">opacity</span>
+                <span class="pipe-prop good-prop">will-change</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 17: Layout Thrashing + Reflow 데모 -->
+  <section data-index="17">
+    <span class="section-num">17</span>
+    <div class="split">
+      <div class="split-left slide-brief">
+        <h2 class="slide-title">Layout Thrashing 줄이기</h2>
+        <p class="slide-tagline">읽기와 쓰기 반복이 Reflow를 연쇄적으로 유발</p>
+        <div class="src-compare">
+          <div class="code-block before">
+            <span class="label">Before</span>
+            <pre><code class="language-javascript reflow-code-before"></code></pre>
+          </div>
+          <div class="code-block after">
+            <span class="label">After</span>
+            <pre><code class="language-javascript reflow-code-after"></code></pre>
+          </div>
+        </div>
+        <div class="slide-panel">
+          <ul class="slide-point-list">
+            <li><strong>Thrashing</strong><span>루프마다 쓰기 및 읽기 → 강제 Reflow N회</span></li>
+            <li><strong>해결</strong><span>읽기 일괄 → 쓰기 일괄 → Reflow 1회</span></li>
+          </ul>
+        </div>
+        <p class="slide-callout">Before / After 각각 ↻ 재생, 진입 시 동시 자동 재생</p>
+      </div>
+      <div class="split-right">
+        <div class="devtools-shell reflow-demo">
+          <div class="devtools-chrome">
+            <div class="chrome-dots"><span></span><span></span><span></span></div>
+            <div class="chrome-url">shop.example.com/products (Layout 이벤트)</div>
+          </div>
+          <div class="devtools-panel reflow-panel">
+            <div class="reflow-trace-compare" aria-label="Layout Thrashing Before / After">
+              <div class="reflow-trace-col reflow-trace-col--before">
+                <div class="reflow-trace-head">
+                  <span class="reflow-trace-label before">Before</span>
+                  <span class="reflow-trace-sub">루프 1회 = 읽기 → Reflow → 쓰기</span>
+                  <span class="reflow-live-count">Reflow <strong class="reflow-thrash-count-before">0</strong><span class="reflow-live-denom">/10</span></span>
+                  <button type="button" class="reflow-replay-btn reflow-replay-btn--before" aria-label="Before 다시 재생">↻</button>
+                </div>
+                <div class="reflow-live-body">
+                  <span class="reflow-live-item" data-live-item-before>상품 #1</span>
+                  <div class="reflow-live-phases" data-live-phases-before>
+                    <span class="rf-phase rf-phase-read" data-phase="read">읽기 <code>offsetHeight</code></span>
+                    <span class="rf-phase-arrow" aria-hidden="true">→</span>
+                    <span class="rf-phase rf-phase-reflow" data-phase="reflow">Reflow</span>
+                    <span class="rf-phase-arrow" aria-hidden="true">→</span>
+                    <span class="rf-phase rf-phase-write" data-phase="write">쓰기 <code>height</code></span>
+                  </div>
+                </div>
+              </div>
+              <div class="reflow-trace-col reflow-trace-col--after">
+                <div class="reflow-trace-head">
+                  <span class="reflow-trace-label after">After</span>
+                  <span class="reflow-trace-sub">읽기 일괄 → Reflow 1회 → 쓰기 일괄</span>
+                  <span class="reflow-live-count reflow-live-count--good">Reflow <strong class="reflow-thrash-count-after">0</strong><span class="reflow-live-denom">/1</span></span>
+                  <button type="button" class="reflow-replay-btn reflow-replay-btn--after" aria-label="After 다시 재생">↻</button>
+                </div>
+                <div class="reflow-live-body">
+                  <span class="reflow-live-item reflow-live-item--batch" data-live-item-after>일괄 처리</span>
+                  <div class="reflow-live-phases" data-live-phases-after>
+                    <span class="rf-phase rf-phase-read" data-phase="read">읽기 <code>×10</code></span>
+                    <span class="rf-phase-arrow" aria-hidden="true">→</span>
+                    <span class="rf-phase rf-phase-reflow" data-phase="reflow">Reflow <code>×1</code></span>
+                    <span class="rf-phase-arrow" aria-hidden="true">→</span>
+                    <span class="rf-phase rf-phase-write" data-phase="write">쓰기 <code>×10</code></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="reflow-compare">
+              <div class="reflow-col">
+                <div class="reflow-col-header before">Before</div>
+                <div class="reflow-cards reflow-cards-before"></div>
+                <div class="reflow-metric-row">
+                  <span class="reflow-metric-label">Layout</span>
+                  <div class="reflow-timeline reflow-timeline-before"></div>
+                </div>
+                <div class="reflow-stats-row">
+                  <div class="reflow-stat bad"><span class="reflow-stat-num reflow-count-before">-</span><span class="reflow-stat-unit">회</span></div>
+                </div>
+              </div>
+              <div class="reflow-col">
+                <div class="reflow-col-header after">After</div>
+                <div class="reflow-cards reflow-cards-after"></div>
+                <div class="reflow-metric-row">
+                  <span class="reflow-metric-label">Layout</span>
+                  <div class="reflow-timeline reflow-timeline-after"></div>
+                </div>
+                <div class="reflow-stats-row">
+                  <div class="reflow-stat good"><span class="reflow-stat-num reflow-count-after">-</span><span class="reflow-stat-unit">회</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 18: Composite-only 속성 -->
+  <section data-index="18">
+    <span class="section-num">18</span>
+    <div class="split">
+      <div class="split-left slide-brief">
+        <h2 class="slide-title">Composite-only 속성 활용</h2>
+        <p class="slide-tagline">16ms 파이프라인에서 Composite 레이어만 활성화</p>
+        <div class="slide-panel">
+          <ul class="slide-point-list">
+            <li><strong>left / top</strong><span>Layout → Paint → Composite 전부 실행</span></li>
+            <li><strong>transform / opacity</strong><span>GPU 합성만 (60fps 유지)</span></li>
+          </ul>
+        </div>
+        <div class="src-compare">
+          <div class="code-block before">
+            <span class="label">Before</span>
+            <pre><code class="language-javascript">el.style.left = x + 'px'
+el.style.top  = y + 'px'</code></pre>
+          </div>
+          <div class="code-block after">
+            <span class="label">After</span>
+            <pre><code class="language-javascript">el.style.transform = `translate(${x}px, ${y}px)`
+el.style.opacity = 0.9</code></pre>
+          </div>
+        </div>
+      </div>
+      <div class="split-right">
+        <div class="composite-viz viz-panel" id="composite-viz">
+          <div class="cv-toolbar">
+            <p class="metric-viz-heading">동일 궤적 (파이프라인 차이)</p>
+            <button type="button" class="cv-replay-btn" aria-label="다시 재생">↻</button>
+          </div>
+          <div class="viz-compare-grid cv-anim-grid">
+            <div class="viz-compare-col viz-compare-col--bad">
+              <div class="cv-col-head bad-head">left / top</div>
+              <div class="cv-mini-pipeline" aria-hidden="true">
+                <span class="cv-mini-stage cv-mini-stage--on" data-side="bad" data-stage="js">JS</span>
+                <span class="cv-mini-stage cv-mini-stage--on" data-side="bad" data-stage="style">Style</span>
+                <span class="cv-mini-stage" data-side="bad" data-stage="layout">Layout</span>
+                <span class="cv-mini-stage" data-side="bad" data-stage="paint">Paint</span>
+                <span class="cv-mini-stage" data-side="bad" data-stage="composite">Comp</span>
+              </div>
+              <div class="cv-arena">
+                <div class="cv-anim-box cv-anim-box--bad"></div>
+              </div>
+              <div class="cv-fps-row">
+                <span class="cv-fps-label">FPS</span>
+                <div class="cv-fps-bar"><div class="cv-fps-fill bad-fps cv-fps-fill--bad"></div></div>
+                <span class="cv-fps-value bad-fps-val cv-fps-value--bad">>- fps</span>
+              </div>
+            </div>
+            <div class="viz-compare-col viz-compare-col--good">
+              <div class="cv-col-head good-head">transform</div>
+              <div class="cv-mini-pipeline" aria-hidden="true">
+                <span class="cv-mini-stage cv-mini-stage--on" data-side="good" data-stage="js">JS</span>
+                <span class="cv-mini-stage cv-mini-stage--on" data-side="good" data-stage="style">Style</span>
+                <span class="cv-mini-stage cv-mini-stage--skip" data-side="good" data-stage="layout">Layout</span>
+                <span class="cv-mini-stage cv-mini-stage--skip" data-side="good" data-stage="paint">Paint</span>
+                <span class="cv-mini-stage cv-mini-stage--on" data-side="good" data-stage="composite">Comp</span>
+              </div>
+              <div class="cv-arena">
+                <div class="cv-anim-box cv-anim-box--good"></div>
+              </div>
+              <div class="cv-fps-row">
+                <span class="cv-fps-label">FPS</span>
+                <div class="cv-fps-bar"><div class="cv-fps-fill good-fps cv-fps-fill--good"></div></div>
+                <span class="cv-fps-value good-fps-val cv-fps-value--good">>- fps</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 19: CLS 레이아웃 안정화 -->
+  <section data-index="19">
+    <span class="section-num">19</span>
+    <div class="split">
+      <div class="split-left slide-brief">
+        <h2 class="slide-title">CLS 레이아웃 안정화</h2>
+        <p class="slide-tagline">로드 전후 레이아웃이 같으면 CLS는 0</p>
+        <div class="slide-hero-card">
+          <div class="slide-hero-main">
+            <span class="slide-hero-kicker">핵심</span>
+            <p class="slide-hero-text">공간을 <strong>미리 예약</strong>하면 이동이 없다</p>
+          </div>
+        </div>
+        <div class="slide-panel slide-panel--fix">
+          <ul class="slide-point-list">
+            <li><strong>이미지</strong><span><code>width</code>/<code>height</code>와 <code>aspect-ratio</code></span></li>
+            <li><strong>광고</strong><span><code>min-height</code> 슬롯</span></li>
+          </ul>
+        </div>
+        <div class="clsov-code-compare">
+          <div class="clsov-code-half clsov-code-half--bad">
+            <span class="clsov-code-head bad">Before</span>
+            <span class="clsov-code-lang-lbl">HTML</span>
+            <pre class="ba-code"><code class="language-html">&lt;img src="banner.jpg"
+     alt=""&gt;</code></pre>
+          </div>
+          <div class="clsov-code-half clsov-code-half--good">
+            <span class="clsov-code-head good">After</span>
+            <span class="clsov-code-lang-lbl">HTML</span>
+            <pre class="ba-code"><code class="language-html">&lt;img src="banner.jpg"
+     width="800" height="400"
+     alt=""&gt;</code></pre>
+            <span class="clsov-code-lang-lbl">CSS</span>
+            <pre class="ba-code"><code class="language-css">.hero {
+  aspect-ratio: 16 / 9;
+}
+.ad-slot {
+  min-height: 90px;
+}</code></pre>
+          </div>
+        </div>
+      </div>
+      <div class="split-right">
+        <div class="clsov-viz viz-panel" id="cls-opt-viz">
+          <div class="clsov-head">
+            <p class="metric-viz-heading">로드 전후 레이아웃 비교</p>
+            <div class="clsov-tabs" role="tablist">
+              <button type="button" class="clsov-tab" data-scenario="img" role="tab" aria-selected="false">이미지</button>
+              <button type="button" class="clsov-tab active" data-scenario="ad" role="tab" aria-selected="true">광고</button>
+            </div>
+            <button type="button" class="clsov-replay-btn" aria-label="다시 재생">↻</button>
+          </div>
+          <div class="clsov-grid">
+            <!-- ── 공간 미확보 (Before) ── -->
+            <div class="clsov-col clsov-col--poor">
+              <div class="clsov-col-meta">
+                <span class="clsov-col-label poor">공간 미확보</span>
+                <span class="clsov-note clsov-note--poor">ad 로드 시 삽입</span>
+              </div>
+              <div class="clsov-browser">
+                <div class="devtools-chrome clsov-browser-chrome">
+                  <div class="chrome-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="chrome-url">shop.example.com</div>
+                </div>
+                <div class="clsov-viewport">
+                  <nav class="clsov-vp-nav" aria-hidden="true">
+                    <span class="clsov-vp-logo"></span>
+                    <div class="clsov-vp-nav-right">
+                      <span class="clsov-vp-nav-item"></span>
+                      <span class="clsov-vp-nav-item"></span>
+                      <span class="clsov-vp-nav-item"></span>
+                    </div>
+                  </nav>
+                  <div class="clsov-vp-ad clsov-vp-ad--drop" data-clsov-ad aria-hidden="true"></div>
+                  <div class="clsov-vp-hero clsov-vp-hero--drop" data-clsov-img hidden aria-hidden="true"></div>
+                  <div class="clsov-vp-body">
+                    <span class="clsov-vp-line"></span>
+                    <span class="clsov-vp-line clsov-vp-line--sub"></span>
+                    <span class="clsov-vp-line clsov-vp-line--note"></span>
+                    <span class="clsov-vp-line clsov-vp-line--note-sm"></span>
+                    <div class="clsov-vp-card"></div>
+                  </div>
+                </div>
+              </div>
+              <span class="clsov-score clsov-score--poor">CLS <strong>0.20</strong> / Poor</span>
+            </div>
+
+            <!-- ── 공간 확보 (After) ── -->
+            <div class="clsov-col clsov-col--good">
+              <div class="clsov-col-meta">
+                <span class="clsov-col-label good">공간 확보</span>
+                <span class="clsov-note clsov-note--good">슬롯 미리 예약</span>
+              </div>
+              <div class="clsov-browser">
+                <div class="devtools-chrome clsov-browser-chrome">
+                  <div class="chrome-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="chrome-url">shop.example.com</div>
+                </div>
+                <div class="clsov-viewport">
+                  <nav class="clsov-vp-nav" aria-hidden="true">
+                    <span class="clsov-vp-logo"></span>
+                    <div class="clsov-vp-nav-right">
+                      <span class="clsov-vp-nav-item"></span>
+                      <span class="clsov-vp-nav-item"></span>
+                      <span class="clsov-vp-nav-item"></span>
+                    </div>
+                  </nav>
+                  <div class="clsov-vp-ad-slot" data-clsov-ad aria-hidden="true">
+                    <div class="clsov-vp-ad clsov-vp-ad--fill"></div>
+                  </div>
+                  <div class="clsov-vp-hero-slot" data-clsov-img hidden aria-hidden="true">
+                    <div class="clsov-vp-hero clsov-vp-hero--fill"></div>
+                  </div>
+                  <div class="clsov-vp-body">
+                    <span class="clsov-vp-line"></span>
+                    <span class="clsov-vp-line clsov-vp-line--sub"></span>
+                    <span class="clsov-vp-line clsov-vp-line--note"></span>
+                    <span class="clsov-vp-line clsov-vp-line--note-sm"></span>
+                    <div class="clsov-vp-card"></div>
+                  </div>
+                </div>
+              </div>
+              <span class="clsov-score clsov-score--good">CLS <strong>0</strong> / Good</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ SECTION 5: 가상화 ═══════════════════════════ -->
+
+  <!-- SLIDE 20: 가상화 -->
+  <section data-index="20">
+    <span class="section-num">20</span>
+    <div class="split">
+      <div class="split-left slide-brief virt-slide-brief">
+        <h2 class="slide-title">Virtualization</h2>
+        <p class="slide-tagline">보이는 구간만 DOM에 렌더링</p>
+        <div class="slide-panel">
+          <ul class="slide-point-list">
+            <li><strong>문제</strong><span>10,000개 전체 렌더 시 DOM 10,000 / FPS 12 / 초기 렌더 ~800ms</span></li>
+            <li><strong>해결</strong><span>scrollTop으로 startIndex 계산, 보이는 ~20개만 DOM 렌더</span></li>
+          </ul>
+        </div>
+        <div class="src-compare">
+          <div class="code-block before">
+            <span class="label">Before</span>
+            <pre><code class="language-javascript virtual-code-before"></code></pre>
+          </div>
+          <div class="code-block after">
+            <span class="label">After</span>
+            <pre><code class="language-javascript virtual-code-after"></code></pre>
+          </div>
+        </div>
+        <p class="slide-callout">Before / After 각각 스크롤해 차이 확인</p>
+      </div>
+      <div class="split-right">
+        <div class="virtual-demo virt-viz viz-panel">
+          <div class="virt-screens">
+            <div class="virt-screen virt-screen-before">
+              <div class="virt-screen-head">
+                <span class="virt-screen-label">Before</span>
+                <span class="virt-screen-sub">전체 렌더</span>
+              </div>
+              <div class="virt-browser">
+                <div class="devtools-chrome virt-browser-chrome">
+                  <div class="chrome-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="chrome-url">shop.example.com/products (10,000 items)</div>
+                </div>
+                <div class="virt-browser-viewport">
+                  <div class="app-site">
+                    <div class="app-site-nav">Shop / Products</div>
+                    <div class="virt-profiler">
+                      <div class="virt-metric-row">
+                        <span class="virt-metric-k">DOM</span>
+                        <span class="virt-metric-v num bad dom-count">-</span>
+                      </div>
+                      <div class="virt-metric-row virt-metric-row--graph">
+                        <span class="virt-metric-k">Memory</span>
+                        <div class="virt-metric-graph">
+                          <div class="virt-metric-bar"><div class="virt-metric-fill mem-fill bad"></div></div>
+                          <span class="virt-metric-v num mem-count">-</span>
+                          <svg class="virt-spark mem-spark" viewBox="0 0 40 12" preserveAspectRatio="none" aria-hidden="true"><path class="virt-spark-line mem-spark-line"></path></svg>
+                        </div>
+                      </div>
+                      <div class="virt-metric-row virt-metric-row--graph">
+                        <span class="virt-metric-k">FPS</span>
+                        <div class="virt-metric-graph">
+                          <div class="virt-metric-bar"><div class="virt-metric-fill fps-fill good"></div></div>
+                          <span class="virt-metric-v num fps-count">-</span>
+                          <svg class="virt-spark fps-spark" viewBox="0 0 40 12" preserveAspectRatio="none" aria-hidden="true"><path class="virt-spark-line fps-spark-line"></path></svg>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="virt-stage virt-stage-before">
+                      <div class="virt-minimap-rail"><div class="virt-minimap-thumb"></div></div>
+                      <div class="virt-viewport-bg" aria-hidden="true"></div>
+                      <div class="virt-viewport-frame"></div>
+                      <div class="virt-fade-top"></div>
+                      <div class="virt-fade-bottom"></div>
+                      <div class="virtual-list virtual-before-list"></div>
+                      <div class="virt-scroll-hint">↕ 스크롤해 보세요</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="virt-screen virt-screen-after">
+              <div class="virt-screen-head">
+                <span class="virt-screen-label">After</span>
+                <span class="virt-screen-sub">Virtualization</span>
+              </div>
+              <div class="virt-browser">
+                <div class="devtools-chrome virt-browser-chrome">
+                  <div class="chrome-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="chrome-url">shop.example.com/products (10,000 items)</div>
+                </div>
+                <div class="virt-browser-viewport">
+                  <div class="app-site">
+                    <div class="app-site-nav">Shop / Products</div>
+                    <div class="virt-profiler">
+                      <div class="virt-metric-row">
+                        <span class="virt-metric-k">DOM</span>
+                        <span class="virt-metric-v num good dom-count">-</span>
+                      </div>
+                      <div class="virt-metric-row virt-metric-row--graph">
+                        <span class="virt-metric-k">Memory</span>
+                        <div class="virt-metric-graph">
+                          <div class="virt-metric-bar"><div class="virt-metric-fill mem-fill good"></div></div>
+                          <span class="virt-metric-v num mem-count">-</span>
+                          <svg class="virt-spark mem-spark" viewBox="0 0 40 12" preserveAspectRatio="none" aria-hidden="true"><path class="virt-spark-line mem-spark-line"></path></svg>
+                        </div>
+                      </div>
+                      <div class="virt-metric-row virt-metric-row--graph">
+                        <span class="virt-metric-k">FPS</span>
+                        <div class="virt-metric-graph">
+                          <div class="virt-metric-bar"><div class="virt-metric-fill fps-fill good"></div></div>
+                          <span class="virt-metric-v num fps-count">-</span>
+                          <svg class="virt-spark fps-spark" viewBox="0 0 40 12" preserveAspectRatio="none" aria-hidden="true"><path class="virt-spark-line fps-spark-line"></path></svg>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="virt-stage virt-stage-after">
+                      <div class="virt-minimap-rail"><div class="virt-minimap-thumb"></div></div>
+                      <div class="virt-viewport-bg" aria-hidden="true"></div>
+                      <div class="virt-viewport-frame"></div>
+                      <div class="virt-fade-top"></div>
+                      <div class="virt-fade-bottom"></div>
+                      <div class="virtual-list virtual-after-list"></div>
+                      <div class="virt-scroll-hint">↕ 스크롤해 보세요</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ SECTION 6: 메모이제이션 ═══════════════════════════ -->
+
+  <!-- SLIDE 16: React 렌더링 사이클 -->
+  <section data-index="21">
+    <span class="section-num">21</span>
+    <div class="split">
+      <div class="split-left slide-brief">
+        <h2 class="slide-title">React 렌더링 사이클</h2>
+        <p class="slide-tagline">부모가 리렌더되면 props 가 같아도 자식도 리렌더링</p>
+        <div class="slide-panel">
+          <ul class="slide-point-list">
+            <li><strong>기본 규칙</strong><span>부모 state 변경 → 모든 자식 재실행, props 동일해도 스킵 없음</span></li>
+            <li><strong>실무 문제</strong><span>접속자 수만 갱신돼도 ProductList, SalesChart까지 매번 리렌더</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="split-right">
+        <div class="react-tree-viz viz-panel" id="react-tree-viz">
+          <div class="rt-toolbar">
+            <p class="metric-viz-heading">컴포넌트 트리 (리렌더 전파)</p>
+            <button type="button" class="rt-replay-btn" aria-label="접속자 수 갱신">↻</button>
+          </div>
+          <div class="rt-tree-body">
+            <div class="rt-legend" aria-hidden="true">
+              <span class="rt-legend-item rt-legend-item--trigger">트리거</span>
+              <span class="rt-legend-item rt-legend-item--ok">정상 리렌더</span>
+              <span class="rt-legend-item rt-legend-item--waste">불필요 리렌더</span>
+            </div>
+            <div class="rt-tree-grid">
+              <div class="rt-parent-cell">
+                <div class="rt-component rt-parent" id="rt-parent" data-role="trigger">
+                  <span class="rt-role">트리거</span>
+                  <span class="rt-name">Dashboard</span>
+                  <span class="rt-state-line">
+                    <span class="rt-state-key">state, 접속자수</span>
+                    <span class="rt-state-val" id="rt-state-val">100</span>
+                  </span>
+                </div>
+              </div>
+              <div class="rt-connectors-cell" aria-hidden="true">
+                <svg class="rt-tree-svg" viewBox="0 0 360 40" preserveAspectRatio="xMidYMid meet">
+                  <path class="rt-conn rt-conn-trunk" d="M180 0 V14" />
+                  <path class="rt-conn rt-conn-bus" d="M60 14 H300" />
+                  <path class="rt-conn rt-conn-a rt-conn--ok" data-for="rt-child-a" d="M60 14 V40" />
+                  <path class="rt-conn rt-conn-b rt-conn--waste" data-for="rt-child-b" d="M180 14 V40" />
+                  <path class="rt-conn rt-conn-c rt-conn--waste" data-for="rt-child-c" d="M300 14 V40" />
+                </svg>
+              </div>
+              <div class="rt-child-cell">
+                <div class="rt-component rt-child" id="rt-child-a" data-role="ok">
+                  <span class="rt-name">LiveCounter</span>
+                  <span class="rt-prop-line">
+                    <span class="rt-prop-key">props, visitors</span>
+                    <span class="rt-prop-val" id="rt-prop-val-a">100 → -</span>
+                  </span>
+                  <span class="rt-render-tag rt-render-tag--ok">정상 리렌더</span>
+                </div>
+              </div>
+              <div class="rt-child-cell">
+                <div class="rt-component rt-child" id="rt-child-b" data-role="waste">
+                  <span class="rt-name">ProductList</span>
+                  <span class="rt-prop-line">
+                    <span class="rt-prop-key">props, products</span>
+                    <span class="rt-prop-val rt-prop-val--same">동일</span>
+                  </span>
+                  <span class="rt-render-tag rt-render-tag--waste">불필요 리렌더</span>
+                </div>
+              </div>
+              <div class="rt-child-cell">
+                <div class="rt-component rt-child" id="rt-child-c" data-role="waste">
+                  <span class="rt-name">SalesChart</span>
+                  <span class="rt-prop-line">
+                    <span class="rt-prop-key">props, chartData</span>
+                    <span class="rt-prop-val rt-prop-val--same">동일</span>
+                  </span>
+                  <span class="rt-render-tag rt-render-tag--waste">불필요 리렌더</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 15: React.memo와 useCallback -->
+  <section data-index="22">
+    <span class="section-num">22</span>
+    <div class="split">
+      <div class="split-left slide-brief memo-slide-brief">
+        <h2 class="slide-title">React.memo와 useCallback</h2>
+        <p class="slide-tagline">memo는 props가 같을 때 스킵, useCallback은 함수 참조를 고정</p>
+        <div class="src-compare">
+          <div class="code-block before">
+            <span class="label">Before</span>
+            <pre><code class="language-javascript memo-code-before"></code></pre>
+          </div>
+          <div class="code-block after">
+            <span class="label">After</span>
+            <pre><code class="language-javascript memo-code-after"></code></pre>
+          </div>
+        </div>
+        <p class="slide-callout">접속자 수 갱신 시 차이 확인, 진입 시 자동 시연</p>
+      </div>
+      <div class="split-right">
+        <div class="memo-demo memo-viz viz-panel">
+          <button type="button" class="btn btn-run memo-update-btn">접속자 수 갱신</button>
+          <div class="memo-screens">
+            <div class="memo-screen memo-screen-before">
+              <div class="memo-screen-head">
+                <span class="memo-screen-label">Before</span>
+                <span class="memo-screen-sub">memo 없음</span>
+              </div>
+              <div class="memo-browser">
+                <div class="devtools-chrome memo-browser-chrome">
+                  <div class="chrome-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="chrome-url">admin.shop.com/dashboard</div>
+                </div>
+                <div class="memo-browser-viewport">
+                  <div class="memo-app">
+                    <div class="memo-comp memo-before-dashboard" data-comp="AdminDashboard">
+                      <span class="memo-comp-tag" aria-hidden="true"></span>
+                      <div class="memo-admin-bar">
+                        <span class="memo-admin-brand">Shop Admin</span>
+                        <span class="memo-admin-live">실시간</span>
+                      </div>
+                      <div class="memo-stat">
+                        <span class="memo-stat-label">현재 접속자 수</span>
+                        <span class="memo-stat-value memo-before-visitors">100</span>
+                      </div>
+                    </div>
+                    <div class="memo-comp memo-before-child" data-comp="ProductRanking">
+                      <span class="memo-comp-tag" aria-hidden="true"></span>
+                      <div class="memo-widget">
+                        <h3 class="memo-widget-title">오늘의 인기 상품</h3>
+                        <div class="memo-before-products product-list"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="memo-screen memo-screen-after">
+              <div class="memo-screen-head">
+                <span class="memo-screen-label">After</span>
+                <span class="memo-screen-sub">memo + useCallback</span>
+              </div>
+              <div class="memo-browser">
+                <div class="devtools-chrome memo-browser-chrome">
+                  <div class="chrome-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="chrome-url">admin.shop.com/dashboard</div>
+                </div>
+                <div class="memo-browser-viewport">
+                  <div class="memo-app">
+                    <div class="memo-comp memo-after-dashboard" data-comp="AdminDashboard">
+                      <span class="memo-comp-tag" aria-hidden="true"></span>
+                      <div class="memo-admin-bar">
+                        <span class="memo-admin-brand">Shop Admin</span>
+                        <span class="memo-admin-live">실시간</span>
+                      </div>
+                      <div class="memo-stat">
+                        <span class="memo-stat-label">현재 접속자 수</span>
+                        <span class="memo-stat-value memo-after-visitors">100</span>
+                      </div>
+                    </div>
+                    <div class="memo-comp memo-after-child" data-comp="ProductRanking">
+                      <span class="memo-comp-tag" aria-hidden="true"></span>
+                      <div class="memo-widget">
+                        <h3 class="memo-widget-title">오늘의 인기 상품</h3>
+                        <div class="memo-after-products product-list"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 16: useMemo 사용 기준 -->
+  <section data-index="23">
+    <span class="section-num">23</span>
+    <div class="split">
+      <div class="split-left slide-brief">
+        <h2 class="slide-title">useMemo 사용 기준</h2>
+        <p class="slide-tagline">메모이제이션 비용과 연산 비용 비교</p>
+        <div class="slide-panel">
+          <ul class="slide-point-list">
+            <li><strong>비교 비용</strong><span>매 렌더마다 의존성 배열 얕은 비교 발생</span></li>
+            <li><strong>역효과</strong><span>연산 비용 &lt; 비교 비용이면 오히려 느려짐</span></li>
+          </ul>
+        </div>
+        <div class="slide-panel">
+          <h3 class="slide-panel-head">불필요한 경우</h3>
+          <pre class="slide-code-block slide-code-compact"><code class="language-javascript">const doubled = useMemo(() => count * 2, [count])
+const label   = useMemo(() => `item-${id}`, [id])</code></pre>
+          <p class="slide-panel-lead">원시값 계산은 비교 비용이 더 큼</p>
+        </div>
+        <div class="slide-panel slide-panel--fix">
+          <h3 class="slide-panel-head">필요한 경우</h3>
+          <pre class="slide-code-block slide-code-compact"><code class="language-javascript">const filtered = useMemo(
+  () => orders.filter(o => o.status === 'shipping'),
+  [orders]
+)
+const config = useMemo(() => ({ theme, size }), [theme, size])</code></pre>
+          <p class="slide-panel-lead">대용량 필터링, memo 자식에 객체 props 전달 시</p>
+        </div>
+      </div>
+      <div class="split-right">
+        <div class="usememo-flow">
+          <svg class="umf-svg" viewBox="-8 -4 384 146" preserveAspectRatio="xMidYMid meet" role="img" aria-label="useMemo 사용 판단 흐름">
+            <rect class="umf-box umf-box--start" x="80" y="4" width="200" height="36" rx="6"/>
+            <text class="umf-txt umf-txt--q" x="180" y="20" text-anchor="middle">연산이 눈에 띄게 느린가?</text>
+            <text class="umf-txt umf-txt--hint" x="180" y="32" text-anchor="middle">10만 건+ 또는 프로파일러 확인</text>
+
+            <path class="umf-edge" d="M 180 40 L 180 50"/>
+            <path class="umf-edge" d="M 180 50 L 78 50 L 78 62"/>
+            <path class="umf-edge" d="M 180 50 L 282 50 L 282 62"/>
+            <text class="umf-lbl umf-lbl--yes" x="129" y="56" text-anchor="middle">그렇다</text>
+            <text class="umf-lbl umf-lbl--no" x="231" y="56" text-anchor="middle">아니다</text>
+
+            <rect class="umf-box umf-box--yes" x="36" y="64" width="84" height="24" rx="5"/>
+            <text class="umf-txt umf-txt--sm" x="78" y="80" text-anchor="middle">useMemo 사용</text>
+
+            <rect class="umf-box umf-box--mid" x="200" y="62" width="164" height="26" rx="5"/>
+            <text class="umf-txt umf-txt--sm" x="282" y="79" text-anchor="middle">memo 자식에 props로 전달하는가?</text>
+
+            <path class="umf-edge" d="M 282 88 L 282 98"/>
+            <path class="umf-edge" d="M 282 98 L 228 98 L 228 110"/>
+            <path class="umf-edge" d="M 282 98 L 314 98 L 314 110"/>
+            <text class="umf-lbl umf-lbl--yes" x="255" y="104" text-anchor="middle">그렇다</text>
+            <text class="umf-lbl umf-lbl--no" x="298" y="104" text-anchor="middle">아니다</text>
+
+            <rect class="umf-box umf-box--yes" x="186" y="112" width="84" height="24" rx="5"/>
+            <text class="umf-txt umf-txt--sm" x="228" y="128" text-anchor="middle">useMemo 사용</text>
+
+            <rect class="umf-box umf-box--no" x="276" y="112" width="76" height="24" rx="5"/>
+            <text class="umf-txt umf-txt--sm" x="314" y="128" text-anchor="middle">사용 안 함</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ SECTION 7: Web Worker ═══════════════════════════ -->
+
+  <!-- SLIDE 15: 메인 스레드 구조 -->
+  <section data-index="24">
+    <span class="section-num">24</span>
+    <div class="split">
+      <div class="split-left slide-brief">
+        <h2 class="slide-title">메인 스레드 구조</h2>
+        <p class="slide-tagline">단일 스레드에서 Javascript, 렌더링, 입력 처리</p>
+        <div class="slide-panel">
+          <ul class="slide-point-list">
+            <li><strong>단일 실행</strong><span>메인 스레드는 한 번에 하나의 태스크만 실행</span></li>
+            <li><strong>담당 업무</strong><span>JavaScript 실행, DOM, 렌더링, 사용자 입력 처리</span></li>
+            <li><strong>Long Task</strong><span>50ms+ JS 실행 중 클릭, 스크롤, 키 입력 전부 대기</span></li>
+          </ul>
+        </div>
+        <p class="slide-callout">Long Task 병목은 메인 스레드 단일 실행 구조에서 발생</p>
+      </div>
+      <div class="split-right">
+        <div class="mainthread-viz viz-panel">
+          <div class="mt-timeline">
+            <div class="mt-row">
+              <span class="mt-row-label">메인<br>스레드</span>
+              <div class="mt-track mt-track-main">
+                <div class="mt-task mt-short mt-short-1"></div>
+                <div class="mt-task mt-short mt-short-2"></div>
+                <div class="mt-task mt-long">
+                  <span class="mt-lt-label">buildSalesReport()</span>
+                  <span class="mt-lt-ms">500ms</span>
+                </div>
+                <div class="mt-task mt-short mt-short-3"></div>
+                <div class="mt-task mt-short mt-short-4"></div>
+              </div>
+            </div>
+            <div class="mt-row">
+              <span class="mt-row-label">사용자<br>입력</span>
+              <div class="mt-track mt-track-input">
+                <span class="viz-input-dot viz-input-dot--click" aria-hidden="true"></span>
+                <span class="viz-input-label viz-input-label--click">클릭</span>
+                <div class="mt-blocked-zone">
+                  <span class="mt-blocked-label">입력 대기</span>
+                </div>
+                <span class="viz-input-dot viz-input-dot--response" aria-hidden="true"></span>
+                <span class="viz-input-label viz-input-label--response">화면 반응</span>
+              </div>
+            </div>
+            <div class="mt-playhead" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 16: Web Worker Before/After 코드 -->
+  <section data-index="25">
+    <span class="section-num">25</span>
+    <div class="split">
+      <div class="split-left slide-brief worker-slide-brief">
+        <h2 class="slide-title">Web Worker API</h2>
+        <p class="slide-tagline">메인 스레드 병목을 Worker로 분리</p>
+        <div class="slide-panel">
+          <ul class="slide-point-list">
+            <li><strong>통신 흐름</strong><span>메인 postMessage → Worker 연산 → postMessage 결과 반환</span></li>
+            <li><strong>메인 스레드</strong><span>연산 중에도 UI 처리 지속</span></li>
+            <li><strong>데이터 전달</strong><span>구조적 복제, ArrayBuffer는 transfer로 소유권 이전 가능</span></li>
+            <li><strong>Worker 제약</strong><span>DOM, window, document 접근 불가</span></li>
+          </ul>
+        </div>
+        <p class="slide-callout">buildSalesReport() 를 Worker로 옮기면 메인에서는 입력 처리 지속 가능</p>
+      </div>
+      <div class="split-right">
+        <div class="worker-flow-viz viz-panel">
+          <div class="wfv-timeline">
+            <div class="wfv-lane">
+              <span class="wfv-lane-label">메인<br>스레드</span>
+              <div class="wfv-track wfv-track-main">
+                <div class="wfv-node wfv-ui wfv-ui-1">UI</div>
+                <div class="wfv-node wfv-ui wfv-ui-2">입력 처리</div>
+                <div class="wfv-node wfv-render">renderReport</div>
+              </div>
+            </div>
+            <div class="wfv-lane">
+              <span class="wfv-lane-label">Worker</span>
+              <div class="wfv-track wfv-track-worker">
+                <div class="wfv-node wfv-compute">buildSalesReport()</div>
+              </div>
+            </div>
+            <div class="wfv-lane wfv-lane-input">
+              <span class="wfv-lane-label">사용자<br>입력</span>
+              <div class="wfv-track wfv-track-input">
+                <span class="viz-input-dot viz-input-dot--click" aria-hidden="true"></span>
+                <span class="viz-input-label viz-input-label--click">클릭</span>
+                <div class="wfv-handled-zone">
+                  <span class="wfv-handled-label">즉시 처리</span>
+                </div>
+                <span class="viz-input-dot viz-input-dot--response" aria-hidden="true"></span>
+                <span class="viz-input-label viz-input-label--response">화면 반응</span>
+              </div>
+            </div>
+            <div class="wfv-playhead" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 15: Web Worker 블로킹 데모 -->
+  <section data-index="26">
+    <span class="section-num">26</span>
+    <div class="split">
+      <div class="split-left slide-brief worker-demo-brief">
+        <h2 class="slide-title">Web Worker 블로킹 데모</h2>
+        <p class="slide-tagline">집계 연산 중 UI 응답성 비교</p>
+        <div class="src-compare">
+          <div class="code-block before">
+            <span class="label">Before</span>
+            <pre><code class="language-javascript worker-code-before"></code></pre>
+          </div>
+          <div class="code-block after">
+            <span class="label">After</span>
+            <pre><code class="language-javascript worker-code-after"></code></pre>
+          </div>
+        </div>
+        <p class="slide-callout">양쪽 매출 집계 실행 클릭 후 타이머, 필터 반응 비교</p>
+      </div>
+      <div class="split-right">
+        <div class="worker-demo worker-viz viz-panel">
+          <div class="worker-screens">
+            <div class="worker-screen worker-screen-before">
+              <div class="worker-screen-head">
+                <span class="worker-screen-label">Before</span>
+                <span class="worker-screen-sub">메인 스레드</span>
+              </div>
+              <div class="worker-browser">
+                <div class="devtools-chrome worker-browser-chrome">
+                  <div class="chrome-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="chrome-url">report.example.com / Sales Report</div>
+                </div>
+                <div class="worker-browser-viewport">
+                  <div class="app-site app-report">
+                    <div class="app-site-nav">
+                      <span>Q4 매출 리포트</span>
+                      <span class="worker-sync worker-before-sync">live 00:00:00</span>
+                    </div>
+                    <div class="worker-profiler worker-before-profiler">
+                      <div class="worker-cpu-row">
+                        <span class="worker-cpu-k">CPU</span>
+                        <div class="worker-cpu-bar"><div class="worker-cpu-fill worker-cpu-fill--main good"></div></div>
+                        <span class="worker-cpu-pct num good">12%</span>
+                        <svg class="worker-cpu-spark" viewBox="0 0 40 12" preserveAspectRatio="none" aria-hidden="true"><path class="worker-cpu-spark-line worker-cpu-spark-line--main"></path></svg>
+                      </div>
+                    </div>
+                    <div class="worker-ui-stage worker-before-stage">
+                      <div class="worker-ui-head">
+                        <span class="worker-ui-title">주문 모니터링</span>
+                        <span class="worker-ui-badge worker-ui-badge--main">메인 스레드</span>
+                      </div>
+                      <div class="worker-filter-row">
+                        <input class="worker-search-input worker-before-search" type="text" placeholder="상품명 필터" autocomplete="off">
+                        <button type="button" class="worker-chip worker-before-chip">최근 1분</button>
+                      </div>
+                      <div class="worker-order-table worker-before-feed"></div>
+                    </div>
+                    <button type="button" class="btn btn-run worker-before-run">매출 집계 실행</button>
+                    <div class="worker-result-list worker-before-result"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="worker-screen-foot worker-before-foot">UI 멈춤</div>
+            </div>
+            <div class="worker-screen worker-screen-after">
+              <div class="worker-screen-head">
+                <span class="worker-screen-label">After</span>
+                <span class="worker-screen-sub">Web Worker</span>
+              </div>
+              <div class="worker-browser">
+                <div class="devtools-chrome worker-browser-chrome">
+                  <div class="chrome-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="chrome-url">report.example.com / Sales Report</div>
+                </div>
+                <div class="worker-browser-viewport">
+                  <div class="app-site app-report">
+                    <div class="app-site-nav">
+                      <span>Q4 매출 리포트</span>
+                      <span class="worker-sync worker-after-sync">live 00:00:00</span>
+                    </div>
+                    <div class="worker-profiler worker-after-profiler">
+                      <div class="worker-cpu-row">
+                        <span class="worker-cpu-k">CPU</span>
+                        <div class="worker-cpu-bar"><div class="worker-cpu-fill worker-cpu-fill--main good"></div></div>
+                        <span class="worker-cpu-pct num good">8%</span>
+                        <svg class="worker-cpu-spark" viewBox="0 0 40 12" preserveAspectRatio="none" aria-hidden="true"><path class="worker-cpu-spark-line worker-cpu-spark-line--main"></path></svg>
+                      </div>
+                      <div class="worker-cpu-row worker-cpu-row--worker">
+                        <span class="worker-cpu-k">Worker</span>
+                        <div class="worker-cpu-bar"><div class="worker-cpu-fill worker-cpu-fill--worker"></div></div>
+                        <span class="worker-cpu-worker-pct num muted">-</span>
+                        <svg class="worker-cpu-spark" viewBox="0 0 40 12" preserveAspectRatio="none" aria-hidden="true"><path class="worker-cpu-spark-line worker-cpu-spark-line--worker"></path></svg>
+                      </div>
+                    </div>
+                    <div class="worker-ui-stage worker-after-stage">
+                      <div class="worker-ui-head">
+                        <span class="worker-ui-title">주문 모니터링</span>
+                        <span class="worker-after-badge">Worker ready</span>
+                      </div>
+                      <div class="worker-filter-row">
+                        <input class="worker-search-input worker-after-search" type="text" placeholder="상품명 필터" autocomplete="off">
+                        <button type="button" class="worker-chip worker-after-chip">최근 1분</button>
+                      </div>
+                      <div class="worker-order-table worker-after-feed"></div>
+                    </div>
+                    <button type="button" class="btn btn-run worker-after-run">매출 집계 실행</button>
+                    <div class="worker-result-list worker-after-result"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="worker-screen-foot worker-after-foot">연산 완료, UI 블로킹 0ms</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 30: 마무리 -->
+  <section data-index="27">
+    <span class="section-num">27</span>
+    <div class="center-layout closing-layout closing-layout--finale">
+      <header class="closing-hero">
+        <h2 class="closing-title">마무리</h2>
+        <p class="closing-tagline">핵심 요약</p>
+      </header>
+
+      <div class="closing-flow" aria-label="최적화 흐름">
+        <div class="closing-flow-step closing-flow-step--measure">
+          <span class="closing-flow-dot" aria-hidden="true"></span>
+          <span class="closing-flow-label">측정</span>
+          <span class="closing-flow-desc">병목 파악</span>
+        </div>
+        <span class="closing-flow-arrow" aria-hidden="true"></span>
+        <div class="closing-flow-step closing-flow-step--bundle">
+          <span class="closing-flow-dot" aria-hidden="true"></span>
+          <span class="closing-flow-label">번들</span>
+          <span class="closing-flow-desc">다운로드 절감</span>
+        </div>
+        <span class="closing-flow-arrow" aria-hidden="true"></span>
+        <div class="closing-flow-step closing-flow-step--render">
+          <span class="closing-flow-dot" aria-hidden="true"></span>
+          <span class="closing-flow-label">렌더링</span>
+          <span class="closing-flow-desc">브라우저 작업 절감</span>
+        </div>
+        <span class="closing-flow-arrow" aria-hidden="true"></span>
+        <div class="closing-flow-step closing-flow-step--runtime">
+          <span class="closing-flow-dot" aria-hidden="true"></span>
+          <span class="closing-flow-label">런타임</span>
+          <span class="closing-flow-desc">실행 비용 절감</span>
+        </div>
+      </div>
+
+      <div class="closing-grid">
+        <article class="closing-card closing-card--cwv" data-phase="measure">
+          <div class="closing-card-head">
+            <span class="closing-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg></span>
+            <span class="closing-card-num">01</span>
+          </div>
+          <h3 class="closing-card-title">Core Web Vitals</h3>
+          <p class="closing-card-msg">LCP, INP, CLS로 무엇이 느린지 숫자로 본다</p>
+        </article>
+        <article class="closing-card" data-phase="bundle">
+          <div class="closing-card-head">
+            <span class="closing-card-icon" aria-hidden="true"><svg><use href="#icon-tree"/></svg></span>
+            <span class="closing-card-num">03</span>
+          </div>
+          <h3 class="closing-card-title">Tree Shaking</h3>
+          <p class="closing-card-msg">ESM named import로 교체하면 Dead Code가 번들에서 사라진다</p>
+        </article>
+        <article class="closing-card" data-phase="render">
+          <div class="closing-card-head">
+            <span class="closing-card-icon" aria-hidden="true"><svg><use href="#icon-resize"/></svg></span>
+            <span class="closing-card-num">05</span>
+          </div>
+          <h3 class="closing-card-title">Reflow / Repaint</h3>
+          <p class="closing-card-msg">한번에 읽고 transform을 쓰면 Layout 횟수가 줄어든다</p>
+        </article>
+        <article class="closing-card" data-phase="runtime">
+          <div class="closing-card-head">
+            <span class="closing-card-icon" aria-hidden="true"><svg><use href="#icon-cache"/></svg></span>
+            <span class="closing-card-num">07</span>
+          </div>
+          <h3 class="closing-card-title">Memoization</h3>
+          <p class="closing-card-msg">React.memo와 useCallback으로 props가 같은 자식의 리렌더를 막는다</p>
+        </article>
+        <article class="closing-card closing-card--tool" data-phase="measure">
+          <div class="closing-card-head">
+            <span class="closing-card-icon" aria-hidden="true"><svg><use href="#icon-gauge"/></svg></span>
+            <span class="closing-card-num">02</span>
+          </div>
+          <h3 class="closing-card-title">Lighthouse / Performance</h3>
+          <p class="closing-card-msg">Lighthouse로 점수를 보고, Performance 탭에서 병목을 추적한다</p>
+        </article>
+        <article class="closing-card" data-phase="bundle">
+          <div class="closing-card-head">
+            <span class="closing-card-icon" aria-hidden="true"><svg><use href="#icon-layers"/></svg></span>
+            <span class="closing-card-num">04</span>
+          </div>
+          <h3 class="closing-card-title">Code Splitting</h3>
+          <p class="closing-card-msg">지금 필요 없는 코드는 dynamic import로 나중에 받으면 된다</p>
+        </article>
+        <article class="closing-card" data-phase="render">
+          <div class="closing-card-head">
+            <span class="closing-card-icon" aria-hidden="true"><svg><use href="#icon-virtual"/></svg></span>
+            <span class="closing-card-num">06</span>
+          </div>
+          <h3 class="closing-card-title">Virtualization</h3>
+          <p class="closing-card-msg">화면에 보이는 것만 DOM에 올리면 노드 수가 10,000에서 20으로 줄어든다</p>
+        </article>
+        <article class="closing-card" data-phase="runtime">
+          <div class="closing-card-head">
+            <span class="closing-card-icon" aria-hidden="true"><svg><use href="#icon-worker"/></svg></span>
+            <span class="closing-card-num">08</span>
+          </div>
+          <h3 class="closing-card-title">Web Worker</h3>
+          <p class="closing-card-msg">무거운 연산을 Worker로 옮기면 메인 스레드가 UI를 계속 처리할 수 있다</p>
+        </article>
+      </div>
+
+      <footer class="closing-footer">
+        <blockquote class="closing-quote">
+          병목을 <strong>숫자로 찾고</strong>, <strong>하나씩 고치고</strong>, <strong>다시 측정</strong>한다
+        </blockquote>
+      </footer>
+    </div>
+  </section>
+
+</div>
+
+<button type="button" class="slide-sidebar-toggle" id="slide-sidebar-toggle" aria-label="목차 열기" aria-expanded="false" aria-controls="slide-sidebar">
+  <svg width="18" height="18" aria-hidden="true"><use href="#icon-gauge"/></svg>
+  <span>목차</span>
+</button>
+
+<div class="slide-sidebar-backdrop" id="slide-sidebar-backdrop" hidden></div>
+
+<aside class="slide-sidebar" id="slide-sidebar" aria-hidden="true" aria-label="발표 목차">
+  <div class="slide-sidebar-inner">
+    <header class="slide-sidebar-head">
+      <h2 class="slide-sidebar-title">목차</h2>
+      <button type="button" class="slide-sidebar-close" id="slide-sidebar-close" aria-label="목차 닫기">
+        <svg width="18" height="18" aria-hidden="true"><use href="#icon-close"/></svg>
+      </button>
+    </header>
+    <nav class="slide-sidebar-nav" id="slide-sidebar-nav"></nav>
+  </div>
+</aside>
+
+<nav class="nav-bar">
+  <button class="nav-btn" id="nav-prev" aria-label="이전"><svg width="20" height="20"><use href="#icon-arrow-left"/></svg></button>
+  <span class="nav-indicator" id="nav-indicator">0 / 27</span>
+  <button class="nav-btn" id="nav-next" aria-label="다음"><svg width="20" height="20"><use href="#icon-arrow-right"/></svg></button>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script type="module" src="main.js?v=23"></script>
+</body>
+</html>
